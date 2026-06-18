@@ -6,6 +6,17 @@
   <title>JLPT N3 Vocabulary Study Tool</title>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
   <style>
+    
+#title-display-container:hover #current-page-title-header {
+  border-bottom: 2px dashed var(--blue-3);
+  cursor: pointer;
+}
+
+.btn-icon-only:hover {
+  color: var(--blue-6) !important;
+  background: var(--blue-0) !important;
+  border-color: var(--blue-2) !important;
+}
     :root {
       --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 
@@ -369,7 +380,25 @@
       </div>
     </div>
     
-    <h3 id="current-page-title-header" style="margin:0 0 .5rem 0; font-size:16px; color:var(--blue-7); font-weight:600;">Notebook Page</h3>
+   <!-- Enhanced Editable Title Container -->
+<div id="page-title-wrapper" style="margin: 0 0 1rem 0; position: relative;">
+  
+  <!-- Display State -->
+  <div id="title-display-container" style="display: flex; align-items: center; gap: 8px; group">
+    <h3 id="current-page-title-header" style="margin:0; font-size:18px; color:var(--blue-7); font-weight:600; border-bottom: 2px solid transparent; transition: border-color 0.2s;">Notebook Page</h3>
+    <button onclick="editPageTitle()" class="btn-icon-only" title="Edit Notebook Title" style="padding: 4px 6px; background: transparent; border: 1px solid transparent; color: var(--blue-4); box-shadow: none;">
+      <i class="ti ti-pencil" aria-hidden="true" style="font-size: 16px;"></i>
+    </button>
+  </div>
+
+  <!-- Edit State (Hidden by default) -->
+  <div id="title-edit-container" style="display: none; align-items: center; gap: 8px;">
+    <input type="text" id="edit-page-title-input" placeholder="Enter new notebook title..." style="font-size:16px; font-weight:600; color:var(--blue-7); padding:6px 12px; border:2px solid var(--blue-5); border-radius:var(--border-radius-sm); flex: 1; background: #fff; outline: none; box-shadow: 0 0 0 3px rgba(44,126,192,0.15);">
+    <button class="btn-learn" onclick="savePageTitle()" style="padding: 6px 16px;">Save</button>
+    <button onclick="cancelEditPageTitle()" style="padding: 6px 16px;">Cancel</button>
+  </div>
+  
+</div>
     
     <div class="list-controls">
       <input type="text" id="search-myvocab" placeholder="Filter words on this page…" oninput="renderMyVocab()">
@@ -436,6 +465,67 @@
 </div>
 
 <script>
+  // --- Add this to your <script> section ---
+
+// Opens the edit view for the title
+function editPageTitle() {
+  const displayContainer = document.getElementById('title-display-container');
+  const editContainer = document.getElementById('title-edit-container');
+  const titleHeader = document.getElementById('current-page-title-header');
+  const titleInput = document.getElementById('edit-page-title-input');
+
+  // Populate input with current title
+  titleInput.value = titleHeader.innerText;
+  
+  // Toggle visibility
+  displayContainer.style.display = 'none';
+  editContainer.style.display = 'flex';
+  
+  // Auto-focus the input
+  titleInput.focus();
+}
+
+// Cancels the edit and returns to display view
+function cancelEditPageTitle() {
+  document.getElementById('title-display-container').style.display = 'flex';
+  document.getElementById('title-edit-container').style.display = 'none';
+}
+
+// Saves the new title and updates the application state
+function savePageTitle() {
+  const newTitle = document.getElementById('edit-page-title-input').value.trim();
+  
+  if (!newTitle) {
+    alert("Title cannot be empty.");
+    return;
+  }
+
+  // 1. Update the DOM header
+  document.getElementById('current-page-title-header').innerText = newTitle;
+  
+  // 2. Find and update the specific page in your data array
+  // Assuming 'myVocabPages' is your array of custom pages and 'currentPageId' is the active ID
+  const pageIndex = myVocabPages.findIndex(p => p.id === currentPageId);
+  if (pageIndex > -1) {
+    myVocabPages[pageIndex].title = newTitle;
+    
+    // 3. Save to localStorage (if you are persisting data)
+    localStorage.setItem('myVocabPages', JSON.stringify(myVocabPages));
+    
+    // 4. Re-render the index view so the new title shows up in the main list
+    renderVocabPagesIndex(); 
+  }
+
+  // Return to display view
+  cancelEditPageTitle();
+}
+
+// Optional: Allow saving the title by pressing "Enter"
+document.getElementById('edit-page-title-input').addEventListener('keypress', function(e) {
+  if (e.key === 'Enter') {
+    savePageTitle();
+  }
+});
 // --- PASTE YOUR 880 WORDS HERE ---
 const ALL = [
   {"kanji": "男性", "hiragana": "だんせい", "meaning": "đàn ông"},
