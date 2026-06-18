@@ -1,0 +1,1763 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JLPT N3 Vocabulary Study Tool</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+      /* ── Blue palette (lightest → deepest) ── */
+      --blue-0: #F0F6FF;   /* near-white tint — page background */
+      --blue-1: #D6E8F7;   /* very light blue — secondary backgrounds */
+      --blue-2: #B8D5EE;   /* soft blue — borders, dividers */
+      --blue-3: #8BBDE0;   /* medium-light — progress track, hover bg */
+      --blue-4: #5A9FD0;   /* mid blue — badge bg, muted labels */
+      --blue-5: #2C7EC0;   /* core blue — active tabs, accents */
+      --blue-6: #1056A0;   /* deep blue — primary text on cards, CTAs */
+      --blue-7: #0A3578;   /* navy — headings, kanji, darkest text */
+
+      --color-background-primary: #ffffff;
+      --color-background-secondary: var(--blue-0);
+      --color-border-tertiary: var(--blue-2);
+      --color-text-primary: var(--blue-7);
+      --color-text-secondary: var(--blue-6);
+      --color-text-tertiary: var(--blue-4);
+      --color-accent: var(--blue-5);
+      --color-accent-deep: var(--blue-6);
+
+      /* Semantic colours — kept functional but shifted blue-adjacent */
+      --color-text-success: #1a7a55;
+      --color-text-warning: #a86a00;
+      --color-text-danger: #c0392b;
+
+      --border-radius-sm: 4px;
+      --border-radius-md: 6px;
+      --border-radius-lg: 12px;
+    }
+
+    h2.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0,0,0,0)}
+    *{box-sizing:border-box; margin:0; padding:0;}
+
+    body{
+      background: linear-gradient(160deg, var(--blue-0) 0%, var(--blue-1) 100%);
+      min-height: 100vh;
+      font-family:var(--font-sans);
+      color:var(--color-text-primary);
+      padding:1rem;
+    }
+
+    .wrap{
+      max-width:600px; margin:0 auto; padding:1rem;
+      background:#ffffff;
+      border-radius:var(--border-radius-lg);
+      border:1px solid var(--blue-2);
+      box-shadow: 0 4px 20px rgba(10,53,120,0.10), 0 1px 4px rgba(10,53,120,0.06);
+    }
+
+    /* ── Tabs ── */
+    .tabs{
+      display:flex; gap:0; margin-bottom:1.25rem;
+      border-bottom:1.5px solid var(--blue-2);
+      overflow-x:auto; white-space:nowrap;
+    }
+    .tab{
+      padding:10px 16px; font-size:14px; cursor:pointer; border:none;
+      background:none; color:var(--blue-4);
+      border-bottom:2.5px solid transparent; margin-bottom:-1.5px;
+      transition: color .15s, border-color .15s;
+      font-weight: 400;
+    }
+    .tab:hover{ color: var(--blue-5); }
+    .tab.active{
+      color: var(--blue-6);
+      border-bottom-color: var(--blue-5);
+      font-weight: 600;
+    }
+
+    .panel{display:none}.panel.active{display:block}
+
+    /* ── Controls ── */
+    .controls{display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-bottom:1.25rem}
+    .controls input[type=text]{
+      flex:1; min-width:120px; font-size:14px; padding:6px 12px;
+      border:1px solid var(--blue-2); border-radius:var(--border-radius-sm);
+      background: var(--blue-0); color: var(--blue-7);
+      transition: border-color .15s, box-shadow .15s;
+    }
+    .controls input[type=text]:focus{
+      outline: none; border-color: var(--blue-5);
+      box-shadow: 0 0 0 3px rgba(44,126,192,0.15);
+    }
+    .controls select{
+      padding: 6px; font-size: 13px;
+      border: 1px solid var(--blue-2); border-radius: var(--border-radius-sm);
+      background: var(--blue-0); color: var(--blue-7);
+    }
+
+    .badge{font-size:13px; color:var(--blue-4); white-space:nowrap; font-weight:500;}
+
+    /* ── Flashcard ── */
+    .scene{width:100%; height:230px; perspective:900px; cursor:pointer; margin-bottom:1.25rem}
+    .card3d{width:100%; height:100%; position:relative; transform-style:preserve-3d; transition:transform .42s cubic-bezier(.4,0,.2,1)}
+    .card3d.flipped{transform:rotateY(180deg)}
+
+    .face{
+      position:absolute; inset:0; backface-visibility:hidden;
+      border-radius:var(--border-radius-lg);
+      border:1.5px solid var(--blue-2);
+      background: linear-gradient(145deg, #ffffff 60%, var(--blue-0) 100%);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      padding:1.5rem; user-select:none; text-align:center;
+      box-shadow: 0 4px 16px rgba(10,53,120,0.08), 0 1px 4px rgba(10,53,120,0.04);
+    }
+    .face.back{
+      transform:rotateY(180deg);
+      background: linear-gradient(145deg, var(--blue-6) 0%, var(--blue-7) 100%);
+      border-color: var(--blue-6);
+    }
+    .face.back .meaning-text{ color: #ffffff; }
+
+    .kanji-text{font-size:42px; font-weight:600; color:var(--blue-7); line-height:1.2; text-align:center; word-break:break-word;}
+    .hira-text{font-size:18px; color:var(--blue-5); margin-top:8px; text-align:center; font-weight:500;}
+    .hint{
+      font-size:11px; color:var(--blue-3); margin-top:14px;
+      text-transform:uppercase; letter-spacing:1.5px;
+    }
+    .meaning-text{font-size:22px; font-weight:600; color:var(--blue-7); text-align:center; word-break:break-word; padding:0 10px;}
+
+    /* ── Navigation ── */
+    .nav{display:flex; gap:8px; align-items:center; justify-content:center; flex-wrap:wrap; margin-bottom:1rem;}
+
+    button{
+      padding:6px 12px; font-size:13px;
+      border:1px solid var(--blue-2); border-radius:var(--border-radius-sm);
+      background:#ffffff; color:var(--blue-6);
+      cursor:pointer; transition: background .1s, border-color .15s, color .1s;
+      font-weight: 500;
+    }
+    button:hover{
+      background: var(--blue-0);
+      border-color: var(--blue-4);
+      color: var(--blue-7);
+    }
+    .nav button{min-width:80px}
+
+    /* ── Progress bar ── */
+    .prog{
+      flex:1; height:7px; background:var(--blue-1);
+      border-radius:4px; overflow:hidden; min-width:80px;
+      border:1px solid var(--blue-2);
+    }
+    .prog-bar{
+      height:100%;
+      background: linear-gradient(90deg, var(--blue-4), var(--blue-5));
+      border-radius:4px; width:0%; transition:width .3s ease;
+    }
+
+    /* ── Action buttons ── */
+    .act-row{display:flex; gap:8px; margin-top:.75rem}
+    .act-row button{flex:1; font-size:14px; padding:10px; font-weight:600;}
+
+    .btn-learn{
+      background: linear-gradient(135deg, #e8f5e9, #c8f0da);
+      color:var(--color-text-success);
+      border-color:#a5d6b7;
+    }
+    .btn-learn:hover{background: linear-gradient(135deg, #c8f0da, #a5d6b7); border-color:#7ec4a0;}
+
+    .btn-hard{
+      background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+      color:#b35d00;
+      border-color:#ffc878;
+    }
+    .btn-hard:hover{background: linear-gradient(135deg, #ffe0b2, #ffcc80); border-color:#ffa733;}
+
+    /* ── Stats ── */
+    .stats{display:flex; gap:8px; margin-top:1.25rem}
+    .stat{
+      flex:1; border-radius:var(--border-radius-md); padding:.65rem; text-align:center;
+      border:1px solid var(--blue-2);
+      background: linear-gradient(145deg, var(--blue-0), var(--blue-1));
+    }
+    .stat-n{font-size:20px; font-weight:700; color:var(--blue-6);}
+    .stat-l{font-size:11px; color:var(--blue-4); margin-top:2px; text-transform:uppercase; letter-spacing:.5px;}
+
+    /* ── Word list ── */
+    .list-wrap{
+      max-height:400px; overflow-y:auto;
+      border:1px solid var(--blue-2); border-radius:var(--border-radius-md);
+      padding:0 10px; background:#ffffff;
+    }
+    .list-controls{display:flex; gap:8px; margin-bottom:.75rem; align-items:center; flex-wrap:wrap}
+    .list-controls input{
+      flex:1; min-width:120px; font-size:14px; padding:6px 12px;
+      border:1px solid var(--blue-2); border-radius:var(--border-radius-sm);
+      background: var(--blue-0); color: var(--blue-7);
+    }
+    .list-controls input:focus{
+      outline:none; border-color:var(--blue-5);
+      box-shadow: 0 0 0 3px rgba(44,126,192,0.15);
+    }
+
+    .word-row{display:flex; align-items:center; gap:10px; padding:12px 0; border-bottom:1px solid var(--blue-1); font-size:14px}
+    .word-row:last-child{border-bottom:none}
+    .word-kanji{font-size:16px; font-weight:600; color:var(--blue-7); min-width:90px; word-break:break-all;}
+    .word-hira{color:var(--blue-5); min-width:110px; font-size:13px; word-break:break-all; font-weight:500;}
+    .word-mean{color:var(--blue-6); flex:1; font-size:13px;}
+    .word-badge{font-size:11px; padding:2px 8px; border-radius:20px; white-space:nowrap; font-weight:600;}
+
+    .badge-learnt{background:#d4edda; color:#1a7a55; border:1px solid #a5d6b7;}
+    .badge-hard{background:#fff3cd; color:#a86a00; border:1px solid #ffd77a;}
+
+    .word-row button{font-size:12px; padding:4px 8px; min-width:0; margin-left:2px;}
+    .empty{color:var(--blue-3); font-size:14px; padding:2rem 0; text-align:center}
+    textarea{
+      width:100%; border:1px solid var(--blue-2); border-radius:var(--border-radius-sm);
+      padding:8px; background: var(--blue-0); color: var(--blue-7);
+    }
+
+    /* ── Rich-text note editor ── */
+    .note-toolbar {
+      display: flex; gap: 4px; flex-wrap: wrap; align-items: center;
+      padding: 5px 6px; background: var(--blue-0);
+      border: 1px solid var(--blue-2);
+      border-bottom: none;
+      border-radius: var(--border-radius-sm) var(--border-radius-sm) 0 0;
+    }
+    .note-toolbar button {
+      padding: 3px 8px; font-size: 12px; min-width: 0;
+      border: 1px solid var(--blue-2);
+      background: #ffffff;
+      border-radius: var(--border-radius-sm);
+      cursor: pointer; line-height: 1.4;
+      color: var(--blue-6);
+    }
+    .note-toolbar button:hover { background: var(--blue-1); border-color: var(--blue-3); }
+    .note-toolbar button.active-fmt { background: var(--blue-1); border-color: var(--blue-4); color: var(--blue-7); }
+    .note-toolbar .sep { width: 1px; height: 18px; background: var(--blue-2); margin: 0 2px; }
+    .note-toolbar input[type=color] {
+      width: 28px; height: 26px; padding: 1px 2px;
+      border: 1px solid var(--blue-2);
+      border-radius: var(--border-radius-sm); cursor: pointer; background: none;
+    }
+    .note-toolbar label { font-size: 11px; color: var(--blue-4); white-space: nowrap; }
+    .note-editor {
+      width: 100%; min-height: 90px;
+      border: 1px solid var(--blue-2);
+      border-radius: 0 0 var(--border-radius-sm) var(--border-radius-sm);
+      padding: 8px; font-size: 14px; font-family: var(--font-sans);
+      outline: none; line-height: 1.6;
+      background: #ffffff;
+      color: var(--blue-7);
+      white-space: pre-wrap; word-break: break-word;
+    }
+    .note-editor:focus { border-color: var(--blue-4); box-shadow: 0 0 0 3px rgba(44,126,192,0.12); }
+    .note-editor:empty::before { content: attr(data-placeholder); color: var(--blue-3); pointer-events: none; }
+
+    /* ── Scrollbar tinting ── */
+    .list-wrap::-webkit-scrollbar { width: 6px; }
+    .list-wrap::-webkit-scrollbar-track { background: var(--blue-0); border-radius: 3px; }
+    .list-wrap::-webkit-scrollbar-thumb { background: var(--blue-3); border-radius: 3px; }
+    .list-wrap::-webkit-scrollbar-thumb:hover { background: var(--blue-4); }
+  </style>
+</head>
+<body>
+
+<h2 class="sr-only">JLPT N3 Mimikara Vocabulary Flashcards</h2>
+<div class="wrap">
+
+<div class="tabs">
+  <button class="tab active" onclick="switchTab('study')">Study</button>
+  <button class="tab" onclick="switchTab('learnt')">Learnt <span id="tab-learnt-ct"></span></button>
+  <button class="tab" onclick="switchTab('hard')">Hard <span id="tab-hard-ct"></span></button>
+  <button class="tab" onclick="switchTab('all')">All Words</button>
+  <button class="tab" onclick="switchTab('myvocab')">My Vocab <span id="tab-myvocab-ct"></span></button>
+  <button class="tab" onclick="switchTab('notebook')">📓 Notes</button>
+</div>
+
+<div id="panel-study" class="panel active">
+  <div class="controls">
+    <input type="text" id="search" placeholder="Search kanji / meaning…" oninput="filterCards()">
+    <select id="main-side" onchange="render()">
+      <option value="ja">Front: Japanese</option>
+      <option value="en">Front: Meaning</option>
+    </select>
+    <button onclick="shuffle()">Shuffle</button>
+    <button onclick="resetProgress()">Reset</button>
+    <span class="badge" id="badge">— cards</span>
+  </div>
+  
+  <div class="scene" onclick="flip()">
+    <div class="card3d" id="card3d">
+      <div class="face front">
+        <div class="kanji-text" id="kj"></div>
+        <div class="hira-text" id="hr"></div>
+        <div class="hint">tap to reveal</div>
+      </div>
+      <div class="face back">
+        <div class="meaning-text" id="mn"></div>
+      </div>
+    </div>
+  </div>
+  
+  <div class="nav">
+    <button onclick="prev()"><i class="ti ti-arrow-left" aria-hidden="true"></i> Prev</button>
+    <div class="prog"><div class="prog-bar" id="pbar"></div></div>
+    <span class="badge" id="pos">1 / —</span>
+    <button onclick="next()">Next <i class="ti ti-arrow-right" aria-hidden="true"></i></button>
+  </div>
+  
+  <div class="act-row">
+    <button class="btn-learn" onclick="markLearnt()" title="Mark as learnt and remove from deck"><i class="ti ti-check" aria-hidden="true"></i> Learnt</button>
+    <button class="btn-hard" onclick="markHard()" title="Mark as hard — stays in deck"><i class="ti ti-flag" aria-hidden="true"></i> Hard</button>
+    <button onclick="skipCard()">Skip</button>
+  </div>
+  
+  <div class="stats">
+    <div class="stat"><div class="stat-n" id="s-total">0</div><div class="stat-l">total</div></div>
+    <div class="stat"><div class="stat-n" id="s-learnt">0</div><div class="stat-l">learnt</div></div>
+    <div class="stat"><div class="stat-n" id="s-hard">0</div><div class="stat-l">hard</div></div>
+    <div class="stat"><div class="stat-n" id="s-left">0</div><div class="stat-l">remaining</div></div>
+  </div>
+</div>
+
+<div id="panel-learnt" class="panel">
+  <div class="list-controls">
+    <input type="text" id="search-learnt" placeholder="Filter…" oninput="renderList('learnt')">
+    <button onclick="clearList('learnt')">Clear all</button>
+  </div>
+  <div id="list-learnt" class="list-wrap"></div>
+</div>
+
+<div id="panel-hard" class="panel">
+  <div class="list-controls">
+    <input type="text" id="search-hard" placeholder="Filter…" oninput="renderList('hard')">
+    <button onclick="studyHard()">Study hard words</button>
+    <button onclick="clearList('hard')">Clear all</button>
+  </div>
+  <div id="list-hard" class="list-wrap"></div>
+</div>
+
+<div id="panel-all" class="panel">
+  <div class="list-controls">
+    <input type="text" id="search-all" placeholder="Filter…" oninput="renderList('all')">
+    <span class="badge" id="all-ct">0 words</span>
+  </div>
+  <div id="list-all" class="list-wrap"></div>
+</div>
+
+<div id="panel-myvocab" class="panel">
+  <div id="myvocab-index-view">
+    <div style="font-size:13px;color:var(--blue-4);margin-bottom:.75rem">Create custom notebook pages to categorize your vocab into flashcard sets.</div>
+    <div class="list-controls">
+      <input type="text" id="new-page-title" placeholder="New notebook page title... (e.g. Chapter 1, Verbs)">
+      <button class="btn-learn" onclick="createVocabPage()">＋ Create Page</button>
+    </div>
+    <span class="badge" id="myvocab-ct" style="margin-bottom:.75rem; display:block;">0 pages</span>
+    <div id="list-vocab-pages" class="list-wrap"></div>
+  </div>
+
+  <div id="myvocab-single-page-view" style="display:none;">
+    <div class="list-controls" style="justify-content:space-between; width:100%;">
+      <button onclick="backToPagesIndex()">← Back</button>
+      <div style="display:flex; gap:8px;">
+        <button onclick="startCustomStudy()" style="background:linear-gradient(135deg,#2C7EC0,#1056A0);color:#fff;font-weight:700;border-color:#1056A0;border-radius:var(--border-radius-sm);">🎴 Study Set</button>
+        <button class="btn-learn" onclick="openAddVocab()">＋ Add word</button>
+      </div>
+    </div>
+    
+    <h3 id="current-page-title-header" style="margin:0 0 .5rem 0; font-size:16px; color:var(--blue-7); font-weight:600;">Notebook Page</h3>
+    
+    <div class="list-controls">
+      <input type="text" id="search-myvocab" placeholder="Filter words on this page…" oninput="renderMyVocab()">
+    </div>
+
+    <div id="vocab-form" style="display:none;background:var(--blue-0);border-radius:var(--border-radius-md);padding:1rem;margin-bottom:.75rem;border:1px solid var(--blue-2)">
+      <div style="font-size:13px;font-weight:600;color:var(--blue-7);margin-bottom:.6rem" id="form-title">Add new word</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <input type="text" id="vf-kanji" placeholder="Kanji / Word (e.g. 勉強)" style="font-size:14px; padding:6px;">
+        <input type="text" id="vf-hira" placeholder="Hiragana / Reading (e.g. べんきょう)" style="padding:6px;">
+        <input type="text" id="vf-mean" placeholder="Meaning (e.g. study)" style="padding:6px;">
+        <div style="display:flex;gap:8px">
+          <button class="btn-learn" onclick="saveVocab()" style="flex:1" id="form-save-btn">Save</button>
+          <button onclick="closeVocabForm()" style="flex:1">Cancel</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="list-myvocab" class="list-wrap"></div>
+  </div>
+
+  <div id="myvocab-study-view" style="display:none;">
+    <div class="controls">
+      <button onclick="exitCustomStudy()">← Stop Studying</button>
+      <select id="custom-side" onchange="renderCustom()">
+        <option value="ja">Front: Japanese</option>
+        <option value="en">Front: Meaning</option>
+      </select>
+      <button onclick="shuffleCustom()">Shuffle</button>
+      <span class="badge" id="custom-badge">— cards</span>
+    </div>
+    
+    <div class="scene" onclick="flipCustom()">
+      <div class="card3d" id="custom-card3d">
+        <div class="face front">
+          <div class="kanji-text" id="c-kj"></div>
+          <div class="hira-text" id="c-hr"></div>
+          <div class="hint">tap to reveal</div>
+        </div>
+        <div class="face back">
+          <div class="meaning-text" id="c-mn"></div>
+        </div>
+      </div>
+    </div>
+    
+    <div class="nav">
+      <button onclick="prevCustom()">Prev</button>
+      <div class="prog"><div class="prog-bar" id="c-pbar"></div></div>
+      <span class="badge" id="c-pos">1 / —</span>
+      <button onclick="nextCustom()">Next</button>
+    </div>
+  </div>
+</div>
+
+<div id="panel-notebook" class="panel">
+  <div style="font-size:13px;color:var(--blue-4);margin-bottom:.75rem">Jot down grammar notes, mnemonics, or anything you want to remember.</div>
+  <div style="display:flex;gap:8px;margin-bottom:.5rem;align-items:center">
+    <input type="text" id="note-title-input" placeholder="Note title…" style="flex:1;font-size:14px">
+    <button class="btn-learn" onclick="addNote()">＋ Add note</button>
+  </div>
+  <div id="notebook-list"></div>
+</div>
+
+</div>
+
+<script>
+// --- PASTE YOUR 880 WORDS HERE ---
+const ALL = [
+  {"kanji": "男性", "hiragana": "だんせい", "meaning": "đàn ông"},
+  {"kanji": "女性", "hiragana": "じょせい", "meaning": "phụ nữ"},
+  {"kanji": "高齢", "hiragana": "こうれい", "meaning": "cao tuổi"},
+  {"kanji": "年上", "hiragana": "としうえ", "meaning": "hơn tuổi"},
+  {"kanji": "目上", "hiragana": "めうえ", "meaning": "bề trên"},
+  {"kanji": "先輩", "hiragana": "せんぱい", "meaning": "tiền bối"},
+  {"kanji": "後輩", "hiragana": "こうはい", "meaning": "hậu bối"},
+  {"kanji": "上司", "hiragana": "じょうし", "meaning": "cấp trên"},
+  {"kanji": "相手", "hiragana": "あいて", "meaning": "người đối diện"},
+  {"kanji": "知り合い", "hiragana": "しりあい", "meaning": "người quen"},
+  {"kanji": "友人", "hiragana": "ゆうじん", "meaning": "bạn bè"},
+  {"kanji": "仲", "hiragana": "なか", "meaning": "quan hệ"},
+  {"kanji": "生年月日", "hiragana": "せいねんがっぴ", "meaning": "ngày tháng năm sinh"},
+  {"kanji": "誕生", "hiragana": "たんじょう", "meaning": "sự ra đời"},
+  {"kanji": "年", "hiragana": "とし", "meaning": "năm"},
+  {"kanji": "出身", "hiragana": "しゅっしん", "meaning": "xuất thân"},
+  {"kanji": "故郷", "hiragana": "こきょう", "meaning": "quê hương"},
+  {"kanji": "成長", "hiragana": "せいちょう", "meaning": "trưởng thành"},
+  {"kanji": "成人", "hiragana": "せいじん", "meaning": "người trưởng thành"},
+  {"kanji": "合格", "hiragana": "ごうかく", "meaning": "đỗ, trúng tuyển"},
+  {"kanji": "進学", "hiragana": "しんがく", "meaning": "học lên cao hơn"},
+  {"kanji": "退学", "hiragana": "たいがく", "meaning": "thôi học"},
+  {"kanji": "就職", "hiragana": "しゅうしょく", "meaning": "tìm việc"},
+  {"kanji": "退職", "hiragana": "たいしょく", "meaning": "nghỉ việc"},
+  {"kanji": "失業", "hiragana": "しつぎょう", "meaning": "thất nghiệp"},
+  {"kanji": "残業", "hiragana": "ざんぎょう", "meaning": "làm thêm giờ"},
+  {"kanji": "生活", "hiragana": "せいかつ", "meaning": "cuộc sống, sinh hoạt"},
+  {"kanji": "通勤", "hiragana": "つうきん", "meaning": "đi làm"},
+  {"kanji": "学歴", "hiragana": "がくれき", "meaning": "bằng cấp, học lịch"},
+  {"kanji": "給料", "hiragana": "きゅうりょう", "meaning": "tiền lương"},
+  {"kanji": "面接", "hiragana": "めんせつ", "meaning": "phỏng vấn"},
+  {"kanji": "休憩", "hiragana": "きゅうけい", "meaning": "nghỉ giải lao"},
+  {"kanji": "観光", "hiragana": "かんこう", "meaning": "tham quan, du lịch"},
+  {"kanji": "帰国", "hiragana": "きこく", "meaning": "về nước"},
+  {"kanji": "帰省", "hiragana": "きせい", "meaning": "về quê"},
+  {"kanji": "帰宅", "hiragana": "きたく", "meaning": "về nhà"},
+  {"kanji": "参加", "hiragana": "さんか", "meaning": "tham gia"},
+  {"kanji": "出席", "hiragana": "しゅっせき", "meaning": "có mặt"},
+  {"kanji": "欠席", "hiragana": "けっせき", "meaning": "vắng mặt"},
+  {"kanji": "遅刻", "hiragana": "ちこく", "meaning": "muộn"},
+  {"kanji": "化粧", "hiragana": "けしょう", "meaning": "trang điểm"},
+  {"kanji": "計算", "hiragana": "けいさん", "meaning": "tính toán"},
+  {"kanji": "計画", "hiragana": "けいかく", "meaning": "kế hoạch"},
+  {"kanji": "成功", "hiragana": "せいこう", "meaning": "thành công"},
+  {"kanji": "失敗", "hiragana": "しっぱい", "meaning": "thất bại"},
+  {"kanji": "準備", "hiragana": "じゅんび", "meaning": "chuẩn bị"},
+  {"kanji": "整理", "hiragana": "せいり", "meaning": "sắp xếp"},
+  {"kanji": "注文", "hiragana": "ちゅうもん", "meaning": "đặt hàng"},
+  {"kanji": "貯金", "hiragana": "ちょきん", "meaning": "tiền tiết kiệm"},
+  {"kanji": "徹夜", "hiragana": "てつや", "meaning": "thức suốt đêm"},
+  {"kanji": "引っ越し", "hiragana": "ひっこし", "meaning": "chuyển nhà"},
+  {"kanji": "身長", "hiragana": "しんちょう", "meaning": "chiều cao"},
+  {"kanji": "体重", "hiragana": "たいじゅう", "meaning": "cân nặng"},
+  {"kanji": "けが", "hiragana": "けが", "meaning": "vết thương"},
+  {"kanji": "会", "hiragana": "かい", "meaning": "tiệc"},
+  {"kanji": "趣味", "hiragana": "しゅみ", "meaning": "sở thích"},
+  {"kanji": "興味", "hiragana": "きょうみ", "meaning": "hứng thú"},
+  {"kanji": "思い出", "hiragana": "おもいで", "meaning": "kỷ niệm"},
+  {"kanji": "冗談", "hiragana": "じょうだん", "meaning": "đùa bỡn"},
+  {"kanji": "目的", "hiragana": "もくてき", "meaning": "mục đích"},
+  {"kanji": "約束", "hiragana": "やくそく", "meaning": "lời hứa"},
+  {"kanji": "おしゃべり", "hiragana": "おしゃべり", "meaning": "nói chuyện riêng"},
+  {"kanji": "遠慮", "hiragana": "えんょ", "meaning": "ngại ngần"},
+  {"kanji": "我慢", "hiragana": "がまん", "meaning": "chịu đựng"},
+  {"kanji": "迷惑", "hiragana": "めわく", "meaning": "làm phiền"},
+  {"kanji": "希望", "hiragana": "きぼう", "meaning": "hi vọng"},
+  {"kanji": "夢", "hiragana": "ゆめ", "meaning": "giấc mơ"},
+  {"kanji": "賛成", "hiragana": "さんせい", "meaning": "đồng ý"},
+  {"kanji": "反対", "hiragana": "はんたい", "meaning": "đối lập"},
+  {"kanji": "想像", "hiragana": "そうぞう", "meaning": "tưởng tượng"},
+  {"kanji": "努力", "hiragana": "どりょく", "meaning": "nỗ lực"},
+  {"kanji": "太陽", "hiragana": "たいよう", "meaning": "mặt trời"},
+  {"kanji": "地球", "hiragana": "ちきゅう", "meaning": "trái đất"},
+  {"kanji": "温度", "hiragana": "おんど", "meaning": "nhiệt độ"},
+  {"kanji": "湿度", "hiragana": "しつど", "meaning": "độ ẩm"},
+  {"kanji": "湿気", "hiragana": "しっき", "meaning": "hơi ẩm"},
+  {"kanji": "梅雨", "hiragana": "つゆ", "meaning": "mùa mưa"},
+  {"kanji": "かび", "hiragana": "かび", "meaning": "nấm mốc"},
+  {"kanji": "暖房", "hiragana": "だんぼう", "meaning": "lò sưởi"},
+  {"kanji": "皮", "hiragana": "かわ", "meaning": "vỏ, da"},
+  {"kanji": "缶", "hiragana": "かん", "meaning": "lon"},
+  {"kanji": "画面", "hiragana": "がめん", "meaning": "màn hình"},
+  {"kanji": "番組", "hiragana": "ばんぐみ", "meaning": "chương trình"},
+  {"kanji": "記事", "hiragana": "きじ", "meaning": "phóng sự, bài báo"},
+  {"kanji": "近所", "hiragana": "きんじょ", "meaning": "hàng xóm"},
+  {"kanji": "警察", "hiragana": "けいさつ", "meaning": "cảnh sát"},
+  {"kanji": "犯人", "hiragana": "はんにん", "meaning": "hung thủ"},
+  {"kanji": "小銭", "hiragana": "こぜに", "meaning": "tiền lẻ"},
+  {"kanji": "ごちそう", "hiragana": "ごちそう", "meaning": "chiêu đãi"},
+  {"kanji": "作者", "hiragana": "作者", "meaning": "tác giả"},
+  {"kanji": "作品", "hiragana": "さくひん", "meaning": "tác phẩm"},
+  {"kanji": "制服", "hiragana": "せいふく", "meaning": "đồng phục"},
+  {"kanji": "洗剤", "hiragana": "せんざい", "meaning": "bột giặt"},
+  {"kanji": "底", "hiragana": "そこ", "meaning": "đáy"},
+  {"kanji": "地下", "hiragana": "ちか", "meaning": "dưới lòng đất"},
+  {"kanji": "寺", "hiragana": "てら", "meaning": "chùa"},
+  {"kanji": "道路", "hiragana": "どうろ", "meaning": "con đường"},
+  {"kanji": "坂", "hiragana": "さか", "meaning": "dốc"},
+  {"kanji": "煙", "hiragana": "けむり", "meaning": "khói"},
+  {"kanji": "灰", "hiragana": "はい", "meaning": "tro"},
+  {"kanji": "判", "hiragana": "はん", "meaning": "con dấu"},
+  {"kanji": "名刺", "hiragana": "めいし", "meaning": "danh thiếp"},
+  {"kanji": "免許", "hiragana": "めんきょ", "meaning": "giấy phép"},
+  {"kanji": "多く", "hiragana": "おおく", "meaning": "nhiều"},
+  {"kanji": "前半", "hiragana": "ぜんはん", "meaning": "phần đầu"},
+  {"kanji": "後半", "hiragana": "こうはん", "meaning": "phần sau"},
+  {"kanji": "最高", "hiragana": "さいこう", "meaning": "cao nhất"},
+  {"kanji": "最低", "hiragana": "さいてい", "meaning": "thấp nhất"},
+  {"kanji": "最初", "hiragana": "さいしょ", "meaning": "đầu tiên"},
+  {"kanji": "最後", "hiragana": "さいご", "meaning": "cuối cùng"},
+  {"kanji": "自動", "hiragana": "じどう", "meaning": "tự động"},
+  {"kanji": "種類", "hiragana": "しゅるい", "meaning": "chủng loại"},
+  {"kanji": "性格", "hiragana": "せいかく", "meaning": "tính cách"},
+  {"kanji": "性質", "hiragana": "せいしつ", "meaning": "tính chất"},
+  {"kanji": "順番", "hiragana": "じゅんばん", "meaning": "thứ tự"},
+  {"kanji": "番", "hiragana": "ばん", "meaning": "lượt"},
+  {"kanji": "方法", "hiragana": "ほうほう", "meaning": "phương pháp"},
+  {"kanji": "製品", "hiragana": "せいひん", "meaning": "sản phẩm"},
+  {"kanji": "値上がり", "hiragana": "ねあがり", "meaning": "tăng giá"},
+  {"kanji": "生", "hiragana": "なま", "meaning": "tươi sống"},
+  {"kanji": "渇く", "hiragana": "かわく", "meaning": "khát"},
+  {"kanji": "嗅ぐ", "hiragana": "かぐ", "meaning": "ngửi"},
+  {"kanji": "叩く", "hiragana": "たたく", "meaning": "đánh, vỗ"},
+  {"kanji": "殴る", "hiragana": "なぐる", "meaning": "đấm"},
+  {"kanji": "ける", "hiragana": "ける", "meaning": "đá"},
+  {"kanji": "抱く", "hiragana": "だく", "meaning": "ôm"},
+  {"kanji": "倒れる", "hiragana": "たおれる", "meaning": "đổ"},
+  {"kanji": "倒す", "hiragana": "たおす", "meaning": "làm đổ"},
+  {"kanji": "起きる・起こる", "hiragana": "おきる・おこる", "meaning": "thức dậy, xảy ra"},
+  {"kanji": "起こす", "hiragana": "おこす", "meaning": "đánh thức"},
+  {"kanji": "尋ねる", "hiragana": "たずねる", "meaning": "hỏi"},
+  {"kanji": "呼ぶ", "hiragana": "よぶ", "meaning": "gọi"},
+  {"kanji": "叫ぶ", "hiragana": "さけぶ", "meaning": "gào thét"},
+  {"kanji": "黙る", "hiragana": "だまる", "meaning": "im lặng"},
+  {"kanji": "飼う", "hiragana": "かう", "meaning": "nuôi"},
+  {"kanji": "数える", "hiragana": "かぞえる", "meaning": "đếm"},
+  {"kanji": "乾く", "hiragana": "かわく", "meaning": "khô"},
+  {"kanji": "乾かす", "hiragana": "かわかす", "meaning": "làm khô"},
+  {"kanji": "畳む", "hiragana": "たたむ", "meaning": "gấp"},
+  {"kanji": "誘う", "hiragana": "ささう", "meaning": "mời"},
+  {"kanji": "奢る", "hiragana": "おごる", "meaning": "chiêu đãi"},
+  {"kanji": "預かる", "hiragana": "あずかる", "meaning": "trông nom"},
+  {"kanji": "預ける", "hiragana": "あずける", "meaning": "gửi"},
+  {"kanji": "決まる", "hiragana": "きまる", "meaning": "được quyết định"},
+  {"kanji": "決める", "hiragana": "きめる", "meaning": "quyết định"},
+  {"kanji": "写る", "hiragana": "うつる", "meaning": "chụp được"},
+  {"kanji": "写す", "hiragana": "うつす", "meaning": "chụp"},
+  {"kanji": "思い出す", "hiragana": "おもいだす", "meaning": "nhớ lại"},
+  {"kanji": "教わる", "hiragana": "おそわる", "meaning": "được dạy"},
+  {"kanji": "申し込む", "hiragana": "もうしこむ", "meaning": "đăng ký"},
+  {"kanji": "断る", "hiragana": "ことわる", "meaning": "từ chối"},
+  {"kanji": "見つかる", "hiragana": "みつかる", "meaning": "tìm thấy"},
+  {"kanji": "見つける", "hiragana": "みつける", "meaning": "tìm"},
+  {"kanji": "捕まる", "hiragana": "つかまる", "meaning": "bị bắt"},
+  {"kanji": "捕まえる", "hiragana": "つかまえる", "meaning": "bắt"},
+  {"kanji": "乗る", "hiragana": "のる", "meaning": "lên xe"},
+  {"kanji": "乗せる", "hiragana": "のせる", "meaning": "cho lên xe"},
+  {"kanji": "降りる", "hiragana": "おりる", "meaning": "xuống xe"},
+  {"kanji": "降ろす", "hiragana": "おろす", "meaning": "cho xuống xe"},
+  {"kanji": "直る", "hiragana": "なおる", "meaning": "được sửa"},
+  {"kanji": "直す", "hiragana": "なおす", "meaning": "sửa"},
+  {"kanji": "治る", "hiragana": "なおる", "meaning": "khỏi bệnh"},
+  {"kanji": "治す", "hiragana": "なおす", "meaning": "chữa bệnh"},
+  {"kanji": "亡くなる", "hiragana": "なくなる", "meaning": "mất"},
+  {"kanji": "亡くす", "hiragana": "なくす", "meaning": "làm mất"},
+  {"kanji": "生まれる", "hiragana": "うまれる", "meaning": "được sinh ra"},
+  {"kanji": "生む", "hiragana": "うむ", "meaning": "sinh"},
+  {"kanji": "出会う", "hiragana": "であう", "meaning": "gặp gỡ"},
+  {"kanji": "訪ねる", "hiragana": "たずねる", "meaning": "ghé thăm"},
+  {"kanji": "付き合う", "hiragana": "つきあう", "meaning": "hẹn hò, đi cùng"},
+  {"kanji": "効く", "hiragana": "きく", "meaning": "có hiệu quả"},
+  {"kanji": "はやる", "hiragana": "はやる", "meaning": "phổ biến"},
+  {"kanji": "経つ", "hiragana": "たつ", "meaning": "qua"},
+  {"kanji": "間に合う", "hiragana": "まにあう", "meaning": "làm cho kịp giờ"},
+  {"kanji": "間に合わせる", "hiragana": "まにあわせる", "meaning": "kịp giờ"},
+  {"kanji": "通う", "hiragana": "かよう", "meaning": "đi làm, học"},
+  {"kanji": "込む", "hiragana": "こむ", "meaning": "đông"},
+  {"kanji": "すれ違う", "hiragana": "すれちあう", "meaning": "vượt, lướt"},
+  {"kanji": "掛かる", "hiragana": "かかる", "meaning": "tốn, treo"},
+  {"kanji": "掛ける", "hiragana": "かける", "meaning": "treo, đeo"},
+  {"kanji": "動く", "hiragana": "うごく", "meaning": "di chuyển"},
+  {"kanji": "動かす", "hiragana": "うごかす", "meaning": "làm di chuyển"},
+  {"kanji": "離れる", "hiragana": "はなれる", "meaning": "rời xa"},
+  {"kanji": "離す", "hiragana": "はなす", "meaning": "tách ra"},
+  {"kanji": "ぶつかる", "hiragana": "ぶつかる", "meaning": "đâm, va"},
+  {"kanji": "ぶつける", "hiragana": "ぶつける", "meaning": "va chạm"},
+  {"kanji": "こぼれる", "hiragana": "こぼれる", "meaning": "bị tràn"},
+  {"kanji": "こぼす", "hiragana": "こぼす", "meaning": "làm tràn"},
+  {"kanji": "ふく", "hiragana": "ふく", "meaning": "lau"},
+  {"kanji": "片付く", "hiragana": "かたづく", "meaning": "được dọn dẹp"},
+  {"kanji": "片付ける", "hiragana": "かたづける", "meaning": "dọn dẹp"},
+  {"kanji": "包む", "hiragana": "つつむ", "meaning": "bọc"},
+  {"kanji": "貼る", "hiragana": "はる", "meaning": "dán"},
+  {"kanji": "無くなる", "hiragana": "なくなる", "meaning": "bị mất"},
+  {"kanji": "無くす", "hiragana": "なくす", "meaning": "đánh mất"},
+  {"kanji": "足りる", "hiragana": "たりる", "meaning": "đủ"},
+  {"kanji": "残る", "hiragana": "のこる", "meaning": "còn lại"},
+  {"kanji": "残す", "hiragana": "のこす", "meaning": "để lại"},
+  {"kanji": "腐る", "hiragana": "くさる", "meaning": "thối"},
+  {"kanji": "むく", "hiragana": "むく", "meaning": "lột"},
+  {"kanji": "滑る", "hiragana": "すべる", "meaning": "trượt"},
+  {"kanji": "積る", "hiragana": "つもる", "meaning": "tích tụ"},
+  {"kanji": "積む", "hiragana": "つむ", "meaning": "chồng chất"},
+  {"kanji": "空く", "hiragana": "あく", "meaning": "trống"},
+  {"kanji": "空ける", "hiragana": "あける", "meaning": "làm trống"},
+  {"kanji": "下がる", "hiragana": "さがる", "meaning": "hạ xuống"},
+  {"kanji": "下げる", "hiragana": "さげる", "meaning": "giảm xuống"},
+  {"kanji": "冷える", "hiragana": "ひえる", "meaning": "lạnh đi"},
+  {"kanji": "冷やす", "hiragana": "ひやす", "meaning": "làm lạnh"},
+  {"kanji": "冷める", "hiragana": "さめる", "meaning": "nguội"},
+  {"kanji": "冷ます", "hiragana": "さます", "meaning": "làm nguội"},
+  {"kanji": "燃える", "hiragana": "もえる", "meaning": "cháy"},
+  {"kanji": "燃やす", "hiragana": "もやす", "meaning": "đốt"},
+  {"kanji": "沸く", "hiragana": "わく", "meaning": "sôi"},
+  {"kanji": "沸かす", "hiragana": "わかす", "meaning": "đun sôi"},
+  {"kanji": "鳴る", "hiragana": "なる", "meaning": "kêu"},
+  {"kanji": "鳴らす", "hiragana": "ならす", "meaning": "làm kêu"},
+  {"kanji": "役立つ・役に立つ", "hiragana": "やくだつ・やくにたつ", "meaning": "có ích"},
+  {"kanji": "役立てる・役に立てる", "hiragana": "やくだてる・やくにたてる", "meaning": "ứng dụng"},
+  {"kanji": "飾り", "hiragana": "かざり", "meaning": "trang trí"},
+  {"kanji": "遊び", "hiragana": "あそび", "meaning": "chơi"},
+  {"kanji": "集まり", "hiragana": "あつまり", "meaning": "tập hợp"},
+  {"kanji": "教え", "hiragana": "おしえ", "meaning": "dạy"},
+  {"kanji": "踊り", "hiragana": "おどり", "meaning": "nhảy"},
+  {"kanji": "思い", "hiragana": "おもい", "meaning": "suy nghĩ, cảm giác"},
+  {"kanji": "考え", "hiragana": "かんがえ", "meaning": "nghĩ, ý tưởng"},
+  {"kanji": "片づけ", "hiragana": "かたづけ", "meaning": "ngăn nắp"},
+  {"kanji": "手伝い", "hiragana": "てつだい", "meaning": "giúp đỡ"},
+  {"kanji": "働き", "hiragana": "はたらき", "meaning": "chức năng"},
+  {"kanji": "決まり", "hiragana": "きまり", "meaning": "quy định"},
+  {"kanji": "騒ぎ", "hiragana": "さわぎ", "meaning": "ồn ào"},
+  {"kanji": "知らせ", "hiragana": "しらせ", "meaning": "thông báo"},
+  {"kanji": "頼み", "hiragana": "たのみ", "meaning": "yêu cầu"},
+  {"kanji": "疲れ", "hiragana": "つかれ", "meaning": "mệt mỏi"},
+  {"kanji": "違い", "hiragana": "ちがい", "meaning": "khác biệt"},
+  {"kanji": "始め", "hiragana": "はじめ", "meaning": "bắt đầu"},
+  {"kanji": "続き", "hiragana": "つづき", "meaning": "tiếp tục"},
+  {"kanji": "暮れ", "hiragana": "くれ", "meaning": "cuối năm"},
+  {"kanji": "行き", "hiragana": "いき", "meaning": "đi"},
+  {"kanji": "帰り", "hiragana": "かえり", "meaning": "về"},
+  {"kanji": "急ぎ", "hiragana": "いそぎ", "meaning": "khẩn cấp"},
+  {"kanji": "遅れ", "hiragana": "おくれ", "meaning": "muộn"},
+  {"kanji": "貸し", "hiragana": "かし", "meaning": "cho vay"},
+  {"kanji": "借り", "hiragana": "かり", "meaning": "vay"},
+  {"kanji": "勝ち", "hiragana": "かち", "meaning": "thắng"},
+  {"kanji": "負け", "hiragana": "まけ", "meaning": "thua"},
+  {"kanji": "迎え", "hiragana": "むかえ", "meaning": "đón"},
+  {"kanji": "始まり", "hiragana": "はじまり", "meaning": "bắt đầu"},
+  {"kanji": "終わり", "hiragana": "おわり", "meaning": "kết thúc"},
+  {"kanji": "戻り", "hiragana": "もどり", "meaning": "trở về"},
+  {"kanji": "別れ", "hiragana": "わかれ", "meaning": "chia ly"},
+  {"kanji": "喜び", "hiragana": "よろこび", "meaning": "hân hoan"},
+  {"kanji": "楽しみ", "hiragana": "たのしみ", "meaning": "vui vẻ, mong đợi"},
+  {"kanji": "笑い", "hiragana": "わらい", "meaning": "tiếng cười"},
+  {"kanji": "驚き", "hiragana": "おどろき", "meaning": "ngạc nhiên"},
+  {"kanji": "怒り", "hiragana": "いかり", "meaning": "phẫn nộ"},
+  {"kanji": "悲しみ", "hiragana": "かなしみ", "meaning": "buồn bã"},
+  {"kanji": "得意な", "hiragana": "とくいな", "meaning": "mạnh, giỏi"},
+  {"kanji": "苦手な", "hiragana": "にがてな", "meaning": "yếu, kém"},
+  {"kanji": "熱心な", "hiragana": "ねっしんな", "meaning": "chăm chỉ"},
+  {"kanji": "夢中な", "hiragana": "むちゅうな", "meaning": "chú tâm"},
+  {"kanji": "退屈な", "hiragana": "たいくつな", "meaning": "chán"},
+  {"kanji": "健康な", "hiragana": "けんこうな", "meaning": "khỏe khoắn"},
+  {"kanji": "苦しい", "hiragana": "くるしい", "meaning": "cực khổ"},
+  {"kanji": "平気な", "hiragana": "へいきな", "meaning": "bình thản"},
+  {"kanji": "悔しい", "hiragana": "くやしい", "meaning": "tiếc nuối"},
+  {"kanji": "うらやましい", "hiragana": "うらやましい", "meaning": "ghen tị"},
+  {"kanji": "かゆい", "hiragana": "かゆい", "meaning": "ngứa"},
+  {"kanji": "おとなしい", "hiragana": "おとなしい", "meaning": "hiền lành"},
+  {"kanji": "我慢強い", "hiragana": "がまんづよい", "meaning": "kiên trì"},
+  {"kanji": "正直な", "hiragana": "しょうじきな", "meaning": "thành thật"},
+  {"kanji": "けちな", "hiragana": "けちな", "meaning": "kẹo kéo"},
+  {"kanji": "わがままな", "hiragana": "わがままな", "meaning": "ích kỷ"},
+  {"kanji": "積極的な", "hiragana": "せっきょくてきな", "meaning": "tích cực"},
+  {"kanji": "消極的な", "hiragana": "しょうきょくてきな", "meaning": "tiêu cực"},
+  {"kanji": "満足な", "hiragana": "まんぞくな", "meaning": "thỏa mãn"},
+  {"kanji": "不満な", "hiragana": "ふまんな", "meaning": "bất mãn"},
+  {"kanji": "不安な", "hiragana": "ふあんな", "meaning": "bất an"},
+  {"kanji": "大変な", "hiragana": "たいへんな", "meaning": "vất vả"},
+  {"kanji": "無理な", "hiragana": "むりな", "meaning": "vô lý, quá sức"},
+  {"kanji": "不可能な", "hiragana": "ふかのうな", "meaning": "bất khả thi"},
+  {"kanji": "お洒落な", "hiragana": "おしゃれな", "meaning": "phong cách"},
+  {"kanji": "派手な", "hiragana": "はでな", "meaning": "lòe loẹt"},
+  {"kanji": "地味な", "hiragana": "じみな", "meaning": "giản dị"},
+  {"kanji": "正確な", "hiragana": "せいかくな", "meaning": "chính xác"},
+  {"kanji": "確かな", "hiragana": "たしかな", "meaning": "đích thực"},
+  {"kanji": "重要な", "hiragana": "じゅうような", "meaning": "quan trọng"},
+  {"kanji": "必要な", "hiragana": "ひつような", "meaning": "cần thiết"},
+  {"kanji": "もったいない", "hiragana": "もったいない", "meaning": "lãng phí"},
+  {"kanji": "すごい", "hiragana": "すごい", "meaning": "xuất sắc"},
+  {"kanji": "ひどい", "hiragana": "ひどい", "meaning": "tồi tệ"},
+  {"kanji": "激しい", "hiragana": "はげしい", "meaning": "mãnh liệt"},
+  {"kanji": "そっくりな", "hiragana": "そっくりな", "meaning": "giống hệt"},
+  {"kanji": "急な", "hiragana": "きゅうな", "meaning": "gấp rút"},
+  {"kanji": "適当な", "hiragana": "てきとうな", "meaning": "phù hợp, qua loa"},
+  {"kanji": "特別な", "hiragana": "とくべつな", "meaning": "đặc biệt"},
+  {"kanji": "完全な", "hiragana": "かんぜんな", "meaning": "hoàn hảo"},
+  {"kanji": "盛んな", "hiragana": "さかんな", "meaning": "thịnh vượng"},
+  {"kanji": "様々な", "hiragana": "さまざまな", "meaning": "đa dạng"},
+  {"kanji": "可能な", "hiragana": "かのうな", "meaning": "khả thi"},
+  {"kanji": "不可能な", "hiragana": "ふかのうな", "meaning": "bất khả thi"},
+  {"kanji": "基本的な", "hiragana": "きほんてきな", "meaning": "cơ bản"},
+  {"kanji": "国際的な", "hiragana": "こくさいてきな", "meaning": "mang tính quốc tế"},
+  {"kanji": "ばらばらな", "hiragana": "ばらばらな", "meaning": "tách rời"},
+  {"kanji": "ぼろぼろな", "hiragana": "ぼろぼろな", "meaning": "rách nát"},
+  {"kanji": "温まる", "hiragana": "あたたまる", "meaning": "trở nên ấm hơn"},
+  {"kanji": "温める", "hiragana": "あたためる", "meaning": "ấm, nóng"},
+  {"kanji": "高まる", "hiragana": "たかまる", "meaning": "cao lên"},
+  {"kanji": "高める", "hiragana": "たかめる", "meaning": "làm cao lên"},
+  {"kanji": "強まる", "hiragana": "つよまる", "meaning": "mạnh lên"},
+  {"kanji": "強める", "hiragana": "つよめる", "meaning": "làm mạnh lên"},
+  {"kanji": "弱まる", "hiragana": "よわまる", "meaning": "yếu đi"},
+  {"kanji": "弱める", "hiragana": "よわめる", "meaning": "làm yếu đi"},
+  {"kanji": "広まる", "hiragana": "ひろまる", "meaning": "lan tràn"},
+  {"kanji": "広める", "hiragana": "ひろめる", "meaning": "làm lan rộng"},
+  {"kanji": "深まる", "hiragana": "ふかまる", "meaning": "sâu sắc thêm"},
+  {"kanji": "深める", "hiragana": "ふかめる", "meaning": "làm sâu sắc"},
+  {"kanji": "世話", "hiragana": "せわ", "meaning": "chăm sóc"},
+  {"kanji": "家庭", "hiragana": "かてい", "meaning": "gia đình"},
+  {"kanji": "協力", "hiragana": "きょうょく", "meaning": "hợp lực"},
+  {"kanji": "感謝", "hiragana": "かんしゃ", "meaning": "biết ơn"},
+  {"kanji": "お礼", "hiragana": "おれい", "meaning": "cảm ơn"},
+  {"kanji": "お詫び", "hiragana": "おわび", "meaning": "xin lỗi"},
+  {"kanji": "おじぎ", "hiragana": "おじぎ", "meaning": "cúi chào"},
+  {"kanji": "握手", "hiragana": "あくしゅ", "meaning": "bắt tay"},
+  {"kanji": "意地悪", "hiragana": "いじわる", "meaning": "xấu tính"},
+  {"kanji": "いたずら", "hiragana": "いたずら", "meaning": "nghịch ngợm"},
+  {"kanji": "節約", "hiragana": "せつやく", "meaning": "tiết kiệm"},
+  {"kanji": "経営", "hiragana": "けいえい", "meaning": "kinh doanh"},
+  {"kanji": "反省", "hiragana": "はんせい", "meaning": "tự kiểm điểm"},
+  {"kanji": "実行", "hiragana": "じっこう", "meaning": "thực hành"},
+  {"kanji": "進歩", "hiragana": "しんぽ", "meaning": "tiến bộ"},
+  {"kanji": "変化", "hiragana": "へんか", "meaning": "thay đổi"},
+  {"kanji": "発達", "hiragana": "はったつ", "meaning": "phát triển"},
+  {"kanji": "体力", "hiragana": "たいりょく", "meaning": "thể lực"},
+  {"kanji": "出場", "hiragana": "しゅつじょう", "meaning": "ra sân, tham gia"},
+  {"kanji": "活躍", "hiragana": "かつやく", "meaning": "hoạt động nổi bật"},
+  {"kanji": "競争", "hiragana": "きょうそう", "meaning": "cạnh tranh"},
+  {"kanji": "応援", "hiragana": "おうえん", "meaning": "cổ vũ"},
+  {"kanji": "拍手", "hiragana": "はくしゅ", "meaning": "vỗ tay"},
+  {"kanji": "人気", "hiragana": "にんき", "meaning": "được yêu thích"},
+  {"kanji": "噂", "hiragana": "うわさ", "meaning": "tin đồn"},
+  {"kanji": "情報", "hiragana": "じょうほう", "meaning": "thông tin"},
+  {"kanji": "交換", "hiragana": "こうかん", "meaning": "trao đổi"},
+  {"kanji": "流行", "hiragana": "りゅうこう", "meaning": "xu hướng"},
+  {"kanji": "宣伝", "hiragana": "せんでん", "meaning": "tuyên truyền"},
+  {"kanji": "広告", "hiragana": "こうこく", "meaning": "quảng cáo"},
+  {"kanji": "注目", "hiragana": "ちゅうもく", "meaning": "chú ý"},
+  {"kanji": "通訳", "hiragana": "つうやく", "meaning": "thông dịch"},
+  {"kanji": "翻訳", "hiragana": "ほんやく", "meaning": "biên dịch"},
+  {"kanji": "伝言", "hiragana": "でんごん", "meaning": "tin nhắn để lại"},
+  {"kanji": "報告", "hiragana": "ほうこく", "meaning": "báo cáo"},
+  {"kanji": "録画", "hiragana": "ろくが", "meaning": "ghi hình"},
+  {"kanji": "混雑", "hiragana": "こんざつ", "meaning": "hỗn tạp, đông đúc"},
+  {"kanji": "渋滞", "hiragana": "じゅうたい", "meaning": "tắc đường"},
+  {"kanji": "衝突", "hiragana": "しょうとつ", "meaning": "xung đột, va chạm"},
+  {"kanji": "被害", "hiragana": "ひがい", "meaning": "thiệt hại"},
+  {"kanji": "事故", "hiragana": "じこ", "meaning": "tai nạn"},
+  {"kanji": "事件", "hiragana": "じけん", "meaning": "sự kiện, vụ án"},
+  {"kanji": "故障", "hiragana": "こしょう", "meaning": "hỏng hóc"},
+  {"kanji": "修理", "hiragana": "しゅうり", "meaning": "sửa chữa"},
+  {"kanji": "停電", "hiragana": "ていでん", "meaning": "mất điện"},
+  {"kanji": "調子", "hiragana": "ちょうし", "meaning": "trạng thái"},
+  {"kanji": "緊張", "hiragana": "きんちょう", "meaning": "lo lắng"},
+  {"kanji": "自信", "hiragana": "じしん", "meaning": "tự tin"},
+  {"kanji": "自慢", "hiragana": "じまん", "meaning": "tự mãn"},
+  {"kanji": "感心", "hiragana": "かんしん", "meaning": "quan tâm"},
+  {"kanji": "感動", "hiragana": "かんどう", "meaning": "cảm động"},
+  {"kanji": "興奮", "hiragana": "こうふん", "meaning": "hưng phấn"},
+  {"kanji": "感想", "hiragana": "かんそう", "meaning": "cảm tưởng"},
+  {"kanji": "予想", "hiragana": "よそう", "meaning": "dự đoán"},
+  {"kanji": "専門", "hiragana": "せんもん", "meaning": "chuyên môn"},
+  {"kanji": "研究", "hiragana": "けんきゅう", "meaning": "nghiên cứu"},
+  {"kanji": "調査", "hiragana": "ちょうさ", "meaning": "điều tra"},
+  {"kanji": "原因", "hiragana": "げんいん", "meaning": "nguyên nhân"},
+  {"kanji": "結果", "hiragana": "けっか", "meaning": "kết quả"},
+  {"kanji": "裁判", "hiragana": "さいばん", "meaning": "xét xử"},
+  {"kanji": "試験", "hiragana": "しけん", "meaning": "kỳ thi"},
+  {"kanji": "面接", "hiragana": "めんせつ", "meaning": "phỏng vấn"},
+  {"kanji": "国境", "hiragana": "こっきょう", "meaning": "biên giới"},
+  {"kanji": "県境", "hiragana": "けんざかい", "meaning": "ranh giới tỉnh"},
+  {"kanji": "州", "hiragana": "しゅう", "meaning": "bang"},
+  {"kanji": "差別", "hiragana": "さべつ", "meaning": "phân biệt đối xử"},
+  {"kanji": "不公平", "hiragana": "ふこうへい", "meaning": "bất công"},
+  {"kanji": "被害者", "hiragana": "ひがいしゃ", "meaning": "nạn nhân"},
+  {"kanji": "加害者", "hiragana": "かがいしゃ", "meaning": "người gây hại"},
+  {"kanji": "お互いに", "hiragana": "おたがいに", "meaning": "lẫn nhau"},
+  {"kanji": "引き分け", "hiragana": "ひきわけ", "meaning": "hòa nhau"},
+  {"kanji": "プラス", "hiragana": "プラス", "meaning": "điểm cộng, dương"},
+  {"kanji": "マイナス", "hiragana": "マイナス", "meaning": "điểm trừ, âm"},
+  {"kanji": "イメージ", "hiragana": "イメージ", "meaning": "hình ảnh, ấn tượng"},
+  {"kanji": "コンテスト", "hiragana": "コンテスト", "meaning": "cuộc thi"},
+  {"kanji": "マスコミ", "hiragana": "マスコミ", "meaning": "truyền thông đại chúng"},
+  {"kanji": "プライバシー", "hiragana": "プライバシー", "meaning": "sự riêng tư"},
+  {"kanji": "狂う", "hiragana": "くるう", "meaning": "điên loạn"},
+  {"kanji": "届く", "hiragana": "とどく", "meaning": "được giao đến"},
+  {"kanji": "届ける", "hiragana": "とどける", "meaning": "giao đến"},
+  {"kanji": "かく", "hiragana": "かく", "meaning": "gãi"},
+  {"kanji": "つかむ", "hiragana": "つかむ", "meaning": "tóm, chộp"},
+  {"kanji": "握る", "hiragana": "にぎる", "meaning": "nắm chặt"},
+  {"kanji": "押さえる", "hiragana": "おさえる", "meaning": "giữ"},
+  {"kanji": "近づく", "hiragana": "ちかづく", "meaning": "lại gần"},
+  {"kanji": "近づける", "hiragana": "ちかづける", "meaning": "mang đến gần"},
+  {"kanji": "合う", "hiragana": "あう", "meaning": "hợp"},
+  {"kanji": "合わせる", "hiragana": "あわせる", "meaning": "kết hợp"},
+  {"kanji": "当たる", "hiragana": "あたる", "meaning": "trúng"},
+  {"kanji": "当てる", "hiragana": "あてる", "meaning": "đánh trúng"},
+  {"kanji": "比べる", "hiragana": "くらべる", "meaning": "so sánh"},
+  {"kanji": "似合う", "hiragana": "にあう", "meaning": "vừa vặn, hợp"},
+  {"kanji": "似る", "hiragana": "にる", "meaning": "giống"},
+  {"kanji": "似せる", "hiragana": "にせる", "meaning": "bắt chước"},
+  {"kanji": "分かれる", "hiragana": "わかれる", "meaning": "được chia ra"},
+  {"kanji": "分ける", "hiragana": "わける", "meaning": "chia"},
+  {"kanji": "足す", "hiragana": "たす", "meaning": "cộng"},
+  {"kanji": "引く", "hiragana": "ひく", "meaning": "trừ, kéo"},
+  {"kanji": "増える", "hiragana": "ふえろ", "meaning": "tăng lên"},
+  {"kanji": "増やす", "hiragana": "ふやす", "meaning": "làm tăng lên"},
+  {"kanji": "減る", "hiragana": "へる", "meaning": "giảm đi"},
+  {"kanji": "減らす", "hiragana": "へらす", "meaning": "làm giảm đi"},
+  {"kanji": "変わる", "hiragana": "かわる", "meaning": "thay đổi"},
+  {"kanji": "変える", "hiragana": "かえる", "meaning": "làm thay đổi"},
+  {"kanji": "代わる・替わる・換わる", "hiragana": "かわる", "meaning": "thay thế"},
+  {"kanji": "代える・替える・換える", "hiragana": "かえる", "meaning": "đổi"},
+  {"kanji": "返る", "hiragana": "かえる", "meaning": "được trả lại"},
+  {"kanji": "返す", "hiragana": "かえす", "meaning": "trả lại"},
+  {"kanji": "譲る", "hiragana": "ゆずる", "meaning": "nhường"},
+  {"kanji": "助かる", "hiragana": "たすかる", "meaning": "được giúp đỡ"},
+  {"kanji": "助ける", "hiragana": "たすける", "meaning": "giúp đỡ"},
+  {"kanji": "いじめる", "hiragana": "いじめる", "meaning": "bắt nạt"},
+  {"kanji": "だます", "hiragana": "だます", "meaning": "lừa gạt"},
+  {"kanji": "盗む", "hiragana": "ぬすむ", "meaning": "ăn cắp"},
+  {"kanji": "刺さる", "hiragana": "ささる", "meaning": "bị đâm"},
+  {"kanji": "刺す", "hiragana": "さす", "meaning": "đâm, châm"},
+  {"kanji": "殺す", "hiragana": "ころす", "meaning": "giết"},
+  {"kanji": "隠れる", "hiragana": "かくれる", "meaning": "ẩn nấp"},
+  {"kanji": "隠す", "hiragana": "かくす", "meaning": "che giấu"},
+  {"kanji": "埋まる", "hiragana": "うまる", "meaning": "bị chôn lấp"},
+  {"kanji": "埋める", "hiragana": "うめる", "meaning": "chôn cất"},
+  {"kanji": "囲む", "hiragana": "かこむ", "meaning": "bao quanh"},
+  {"kanji": "詰まる", "hiragana": "つまる", "meaning": "bị tắc"},
+  {"kanji": "詰める", "hiragana": "つめる", "meaning": "nhồi nhét"},
+  {"kanji": "開く", "hiragana": "ひらく", "meaning": "mở (sự kiện, hoa)"},
+  {"kanji": "閉じる", "hiragana": "とじる", "meaning": "đóng (sách, mắt)"},
+  {"kanji": "飛ぶ", "hiragana": "とぶ", "meaning": "bay"},
+  {"kanji": "飛ばす", "hiragana": "とばす", "meaning": "làm bay, bỏ qua"},
+  {"kanji": "振る", "hiragana": "ふる", "meaning": "rung, vẫy"},
+  {"kanji": "めくる", "hiragana": "めくる", "meaning": "lật lên"},
+  {"kanji": "見かける", "hiragana": "みかける", "meaning": "tình cờ thấy"},
+  {"kanji": "確かめる", "hiragana": "たしかめる", "meaning": "kiểm tra lại"},
+  {"kanji": "試す", "hiragana": "ためす", "meaning": "thử"},
+  {"kanji": "繰り返す", "hiragana": "くりかえす", "meaning": "lặp lại"},
+  {"kanji": "訳す", "hiragana": "やくす", "meaning": "dịch"},
+  {"kanji": "行う", "hiragana": "おこなう", "meaning": "tổ chức"},
+  {"kanji": "間違える", "hiragana": "まちがえる", "meaning": "nhầm lẫn"},
+  {"kanji": "間違え", "hiragana": "まちがえ", "meaning": "lỗi nhầm lẫn"},
+  {"kanji": "許す", "hiragana": "ゆるす", "meaning": "tha thứ"},
+  {"kanji": "慣れる", "hiragana": "なれる", "meaning": "quen với"},
+  {"kanji": "慣らす", "hiragana": "ならす", "meaning": "làm cho quen"},
+  {"kanji": "立つ", "hiragana": "たつ", "meaning": "đứng"},
+  {"kanji": "立てる", "hiragana": "たてる", "meaning": "dựng lên"},
+  {"kanji": "建つ", "hiragana": "たつ", "meaning": "được xây dựng"},
+  {"kanji": "建てる", "hiragana": "たてる", "meaning": "xây dựng"},
+  {"kanji": "育つ", "hiragana": "そだつ", "meaning": "lớn lên"},
+  {"kanji": "育てる", "hiragana": "そだてる", "meaning": "nuôi nấng"},
+  {"kanji": "生える", "hiragana": "はえる", "meaning": "mọc (răng, tóc)"},
+  {"kanji": "生やす", "hiragana": "はやす", "meaning": "nuôi (râu)"},
+  {"kanji": "汚れる", "hiragana": "よごれる", "meaning": "bị bẩn"},
+  {"kanji": "汚す", "hiragana": "よごす", "meaning": "làm bẩn"},
+  {"kanji": "壊れる", "hiragana": "こわれる", "meaning": "bị hỏng"},
+  {"kanji": "壊す", "hiragana": "こわす", "meaning": "làm hỏng"},
+  {"kanji": "割れる", "hiragana": "われる", "meaning": "bị vỡ"},
+  {"kanji": "割る", "hiragana": "わる", "meaning": "đập vỡ"},
+  {"kanji": "折れる", "hiragana": "おれる", "meaning": "bị gãy"},
+  {"kanji": "折る", "hiragana": "おる", "meaning": "bẻ gãy"},
+  {"kanji": "破れる", "hiragana": "やぶれる", "meaning": "bị rách"},
+  {"kanji": "破る", "hiragana": "やぶる", "meaning": "làm rách, phá vỡ"},
+  {"kanji": "外れる", "hiragana": "はずれる", "meaning": "bị tuột ra"},
+  {"kanji": "外す", "hiragana": "はずす", "meaning": "tháo ra"},
+  {"kanji": "揺れる", "hiragana": "ゆれる", "meaning": "rung lắc"},
+  {"kanji": "揺らす", "hiragana": "ゆらす", "meaning": "làm rung lắc"},
+  {"kanji": "流れる", "hiragana": "ながれる", "meaning": "chảy"},
+  {"kanji": "流す", "hiragana": "ながす", "meaning": "làm chảy, xả"},
+  {"kanji": "濡れる", "hiragana": "ぬれる", "meaning": "bị ướt"},
+  {"kanji": "濡らす", "hiragana": "ぬらす", "meaning": "làm ướt"},
+  {"kanji": "迷う", "hiragana": "まよう", "meaning": "lạc đường, phân vân"},
+  {"kanji": "悩む", "hiragana": "なやむ", "meaning": "lo nghĩ, phiền muộn"},
+  {"kanji": "慌てる", "hiragana": "あわてる", "meaning": "vội vã, cuống cuồng"},
+  {"kanji": "覚める", "hiragana": "さめる", "meaning": "tỉnh giấc"},
+  {"kanji": "覚ます", "hiragana": "さます", "meaning": "đánh thức, làm tỉnh"},
+  {"kanji": "祈る", "hiragana": "いのる", "meaning": "cầu nguyện"},
+  {"kanji": "祝う", "hiragana": "いわう", "meaning": "chúc mừng"},
+  {"kanji": "感じる", "hiragana": "かんじる", "meaning": "cảm thấy"},
+  {"kanji": "クラスメート", "hiragana": "クラスメート", "meaning": "bạn cùng lớp"},
+  {"kanji": "グループ", "hiragana": "グループ", "meaning": "nhóm"},
+  {"kanji": "チーム", "hiragana": "チーム", "meaning": "đội"},
+  {"kanji": "プロフェッショナル", "hiragana": "プロフェッショナル", "meaning": "chuyên nghiệp"},
+  {"kanji": "アマチュア", "hiragana": "アマチュア", "meaning": "nghiệp dư"},
+  {"kanji": "トレーニング", "hiragana": "トレーニング", "meaning": "đào tạo"},
+  {"kanji": "マッサージ", "hiragana": "マッサージ", "meaning": "mát xa"},
+  {"kanji": "アドバイス", "hiragana": "アドバイス", "meaning": "khuyên"},
+  {"kanji": "アイデア", "hiragana": "アイデア", "meaning": "ý tưởng"},
+  {"kanji": "トップ", "hiragana": "トップ", "meaning": "đầu bảng, top"},
+  {"kanji": "濃い", "hiragana": "こい", "meaning": "đậm, đặc"},
+  {"kanji": "薄い", "hiragana": "うすい", "meaning": "mỏng, nhạt"},
+  {"kanji": "酸っぱい", "hiragana": "すっぱい", "meaning": "chua"},
+  {"kanji": "臭い", "hiragana": "くさい", "meaning": "thối"},
+  {"kanji": "おかしい", "hiragana": "おかしい", "meaning": "lạ"},
+  {"kanji": "かっこいい", "hiragana": "かっこいい", "meaning": "bảnh bao"},
+  {"kanji": "うまい", "hiragana": "うまい", "meaning": "ngon"},
+  {"kanji": "親しい", "hiragana": "したしい", "meaning": "thân thiết"},
+  {"kanji": "詳しい", "hiragana": "くわしい", "meaning": "chi tiết"},
+  {"kanji": "細かい", "hiragana": "こまかい", "meaning": "nhỏ, chi ly"},
+  {"kanji": "浅い", "hiragana": "あさい", "meaning": "nông"},
+  {"kanji": "固い・硬い", "hiragana": "かたい", "meaning": "cứng"},
+  {"kanji": "ぬるい", "hiragana": "ぬるい", "meaning": "nguội nguội"},
+  {"kanji": "まぶしい", "hiragana": "まぶしい", "meaning": "chói chang"},
+  {"kanji": "蒸し暑い", "hiragana": "むしあつい", "meaning": "nóng ẩm"},
+  {"kanji": "清潔な", "hiragana": "せいけつな", "meaning": "sạch sẽ"},
+  {"kanji": "新鮮な", "hiragana": "しんせんな", "meaning": "tươi ngon"},
+  {"kanji": "豊かな", "hiragana": "ゆたかな", "meaning": "phong phú"},
+  {"kanji": "立派な", "hiragana": "りっぱな", "meaning": "hào hoa, lộng lẫy"},
+  {"kanji": "正確な", "hiragana": "せいかくな", "meaning": "chính xác"},
+  {"kanji": "確かな", "hiragana": "たしかな", "meaning": "đích thực"},
+  {"kanji": "重要な", "hiragana": "じゅうような", "meaning": "quan trọng"},
+  {"kanji": "必要な", "hiragana": "ひつような", "meaning": "cần thiết"},
+  {"kanji": "だらしな", "hiragana": "だらしな", "meaning": "bừa bãi"},
+  {"kanji": "不潔な", "hiragana": "ふけつな", "meaning": "bẩn"},
+  {"kanji": "残念な", "hiragana": "ざんねんな", "meaning": "đáng tiếc"},
+  {"kanji": "不可能な", "hiragana": "ふかのうな", "meaning": "bất khả thi"},
+  {"kanji": "不公平な", "hiragana": "ふこうへいな", "meaning": "bất công"},
+  {"kanji": "不十分な", "hiragana": "ふじゅうぶんな", "meaning": "không đủ"},
+  {"kanji": "非常に", "hiragana": "ひじょうに", "meaning": "rất"},
+  {"kanji": "大変に", "hiragana": "たいへんに", "meaning": "khủng khiếp, rất nhiều"},
+  {"kanji": "ほとんど", "hiragana": "ほとんど", "meaning": "gần như hoàn toàn"},
+  {"kanji": "大体", "hiragana": "だいたい", "meaning": "phần lớn, trong khoảng"},
+  {"kanji": "かなり", "hiragana": "かなり", "meaning": "khá"},
+  {"kanji": "ずいぶん", "hiragana": "ずいぶん", "meaning": "đáng kể"},
+  {"kanji": "けっこう", "hiragana": "けっこう", "meaning": "rất"},
+  {"kanji": "大分", "hiragana": "ずいぶん", "meaning": "chủ yếu, khá"},
+  {"kanji": "もっと", "hiragana": "もっと", "meaning": "hơn nữa"},
+  {"kanji": "すっかり", "hiragana": "すっかり", "meaning": "toàn bộ"},
+  {"kanji": "いっぱい", "hiragana": "いっぱい", "meaning": "đầy"},
+  {"kanji": "ぎりぎり", "hiragana": "ぎりぎり", "meaning": "sát nút"},
+  {"kanji": "ぴったり", "hiragana": "ぴったり", "meaning": "vừa vặn"},
+  {"kanji": "たいてi", "hiragana": "たいてい", "meaning": "thông thường"},
+  {"kanji": "同時に", "hiragana": "どうじに", "meaning": "đồng thời"},
+  {"kanji": "前もって", "hiragana": "まえもって", "meaning": "trước"},
+  {"kanji": "すぐに", "hiragana": "すぐに", "meaning": "ngay lập tức"},
+  {"kanji": "もうすぐ", "hiragana": "もうすぐ", "meaning": "sắp sửa"},
+  {"kanji": "突然", "hiragana": "とつぜん", "meaning": "đột nhiên"},
+  {"kanji": "あっと言う間に", "hiragana": "あっというまに", "meaning": "trong chớp mắt"},
+  {"kanji": "いつの間にか", "hiragana": "いつのまにか", "meaning": "lúc nào không biết"},
+  {"kanji": "しばらく", "hiragana": "しばらく", "meaning": "một chút"},
+  {"kanji": "ずっと", "hiragana": "ずっと", "meaning": "suốt, hơn nhiều"},
+  {"kanji": "相変わらず", "hiragana": "あいかわらず", "meaning": "như mọi khi"},
+  {"kanji": "次々に", "hiragana": "つぎつぎに", "meaning": "lần lượt"},
+  {"kanji": "どんどん", "hiragana": "どんどん", "meaning": "nhanh chóng"},
+  {"kanji": "ますます", "hiragana": "ますます", "meaning": "ngày càng"},
+  {"kanji": "やっと", "hiragana": "やっと", "meaning": "cuối cùng thì"},
+  {"kanji": "とうとう", "hiragana": "とうとう", "meaning": "sau cùng"},
+  {"kanji": "ついに", "hiragana": "ついに", "meaning": "cuối cùng"},
+  {"kanji": "なるべく", "hiragana": "なるべく", "meaning": "càng nhiều càng tốt"},
+  {"kanji": "やはり", "hiragana": "やはり", "meaning": "quả nhiên"},
+  {"kanji": "うっかり", "hiragana": "うっかり", "meaning": "vô ý"},
+  {"kanji": "がっかり", "hiragana": "がっかり", "meaning": "thất vọng"},
+  {"kanji": "すっきり", "hiragana": "すっきり", "meaning": "sảng khoái, gọn gàng"},
+  {"kanji": "さっぱり", "hiragana": "さっぱり", "meaning": "nhẹ lòng, hoàn toàn không"},
+  {"kanji": "びしょびしょ", "hiragana": "びしょびしょ", "meaning": "ướt sũng"},
+  {"kanji": "ふと", "hiragana": "ふと", "meaning": "đột nhiên"},
+  {"kanji": "わざと", "hiragana": "わざと", "meaning": "cố tình"},
+  {"kanji": "ほっと", "hiragana": "ほっと", "meaning": "nhẹ nhõm"},
+  {"kanji": "じっと", "hiragana": "じっと", "meaning": "kiên nhẫn, chăm chú, chằm chằm"},
+  {"kanji": "そっと", "hiragana": "そっと", "meaning": "nhẹ nhàng, yên lặng"},
+  {"kanji": "別々に", "hiragana": "べつべつに", "meaning": "riêng biệt"},
+  {"kanji": "それぞれ", "hiragana": "それぞれ", "meaning": "lần lượt, tương ứng"},
+  {"kanji": "互いに", "hiragana": "おたがいに", "meaning": "lẫn nhau"},
+  {"kanji": "直接", "hiragana": "ちょくせつ", "meaning": "trực tiếp"},
+  {"kanji": "本当に", "hiragana": "ほんとうに", "meaning": "thật sự"},
+  {"kanji": "必ず", "hiragana": "かならず", "meaning": "nhất định"},
+  {"kanji": "絶対に", "hiragana": "ぜったいに", "meaning": "tuyệt đối"},
+  {"kanji": "特に", "hiragana": "とくに", "meaning": "đặc biệt"},
+  {"kanji": "少なくとも", "hiragana": "すくなくとも", "meaning": "ít nhất"},
+  {"kanji": "決して", "hiragana": "けっして", "meaning": "không bao giờ"},
+  {"kanji": "少しも", "hiragana": "すこしも", "meaning": "một chút cũng không"},
+  {"kanji": "ちっとも", "hiragana": "ちっとも", "meaning": "không chút nào"},
+  {"kanji": "まったく", "hiragana": "まったく", "meaning": "hoàn toàn"},
+  {"kanji": "さほど", "hiragana": "さほど", "meaning": "không hẳn"},
+  {"kanji": "どんなに", "hiragana": "どんなに", "meaning": "thế nào đi nữa"},
+  {"kanji": "どうして", "hiragana": "どうして", "meaning": "tại sao"},
+  {"kanji": "どのように", "hiragana": "どのように", "meaning": "như thế nào"},
+  {"kanji": "いくら", "hiragana": "いくら", "meaning": "bao nhiêu"},
+  {"kanji": "たとえ", "hiragana": "たとえ", "meaning": "ví dụ"},
+  {"kanji": "万一", "hiragana": "まんいち", "meaning": "vạn nhất, lỡ như"},
+  {"kanji": "一体", "hiragana": "いったい", "meaning": "rốt cục"},
+  {"kanji": "果たして", "hiragana": "はたして", "meaning": "quả nhiên"},
+  {"kanji": "読書", "hiragana": "どうしょ", "meaning": "đọc viết"},
+  {"kanji": "演奏", "hiragana": "えんそう", "meaning": "biểu diễn"},
+  {"kanji": "芸術", "hiragana": "げいじゅつ", "meaning": "nghệ thuật"},
+  {"kanji": "検査", "hiragana": "けんさ", "meaning": "kiểm tra"},
+  {"kanji": "血液", "hiragana": "けつえき", "meaning": "máu"},
+  {"kanji": "治療", "hiragana": "ちりょう", "meaning": "trị liệu"},
+  {"kanji": "症状", "hiragana": "しょうじょう", "meaning": "triệu chứng"},
+  {"kanji": "予防", "hiragana": "よぼう", "meaning": "dự phòng"},
+  {"kanji": "栄養", "hiragana": "えいよう", "meaning": "dinh dưỡng"},
+  {"kanji": "手術", "hiragana": "しゅじゅつ", "meaning": "phẫu thuật"},
+  {"kanji": "死亡", "hiragana": "しぼう", "meaning": "tử vong"},
+  {"kanji": "命", "hiragana": "いのち", "meaning": "sinh mạng"},
+  {"kanji": "一生", "hiragana": "いっしょう", "meaning": "suốt đời"},
+  {"kanji": "誤解", "hiragana": "ごかい", "meaning": "hiểu lầm"},
+  {"kanji": "後悔", "hiragana": "こうかい", "meaning": "hối hận"},
+  {"kanji": "訳", "hiragana": "わけ", "meaning": "lý do, ý nghĩa"},
+  {"kanji": "態度", "hiragana": "たいど", "meaning": "thái độ"},
+  {"kanji": "癖", "hiragana": "くせ", "meaning": "thói quen xấu"},
+  {"kanji": "礼儀", "hiragana": "れいぎ", "meaning": "lễ nghi"},
+  {"kanji": "文句", "hiragana": "もんく", "meaning": "phàn nàn"},
+  {"kanji": "表情", "hiragana": "ひょうじょう", "meaning": "biểu cảm khuôn mặt"},
+  {"kanji": "表面", "hiragana": "ひょうめん", "meaning": "bề mặt"},
+  {"kanji": "禁煙", "hiragana": "きんえん", "meaning": "cấm hút thuốc"},
+  {"kanji": "禁止", "hiragana": "きんし", "meaning": "cấm"},
+  {"kanji": "完成", "hiragana": "かんせい", "meaning": "hoàn thành"},
+  {"kanji": "課題", "hiragana": "かだい", "meaning": "chủ đề, nhiệm vụ"},
+  {"kanji": "例外", "hiragana": "れいがい", "meaning": "ngoại lệ"},
+  {"kanji": "基本", "hiragana": "きほん", "meaning": "cơ bản"},
+  {"kanji": "記録", "hiragana": "きろく", "meaning": "kỷ lục, ghi chép"},
+  {"kanji": "状態", "hiragana": "じょうたい", "meaning": "trạng thái"},
+  {"kanji": "事件", "hiragana": "じけん", "meaning": "sự kiện, vụ án"},
+  {"kanji": "不景気", "hiragana": "ふけいき", "meaning": "kinh tế suy thoái"},
+  {"kanji": "景気", "hiragana": "けいき", "meaning": "tình hình kinh tế"},
+  {"kanji": "募金", "hiragana": "ぼきん", "meaning": "quyên góp tiền"},
+  {"kanji": "寄付", "hiragana": "きふ", "meaning": "đóng góp"},
+  {"kanji": "募集", "hiragana": "ぼしゅう", "meaning": "tuyển dụng"},
+  {"kanji": "価値", "hiragana": "かち", "meaning": "giá trị"},
+  {"kanji": "好む", "hiragana": "このむ", "meaning": "thích"},
+  {"kanji": "嫌う", "hiragana": "きらう", "meaning": "ghét"},
+  {"kanji": "願う", "hiragana": "ねがう", "meaning": "ước, yêu cầu"},
+  {"kanji": "甘える", "hiragana": "あまえる", "meaning": "nũng nịu"},
+  {"kanji": "かわいがる", "hiragana": "かわいがる", "meaning": "yêu mến"},
+  {"kanji": "気づく", "hiragana": "きづく", "meaning": "nhận ra"},
+  {"kanji": "疑う", "hiragana": "うたがう", "meaning": "nghi ngờ"},
+  {"kanji": "苦しむ", "hiragana": "くるしむ", "meaning": "đau khổ"},
+  {"kanji": "悲しむ", "hiragana": "かなしむ", "meaning": "buồn bã"},
+  {"kanji": "がっかりする", "hiragana": "がっかりする", "meaning": "thất vọng"},
+  {"kanji": "励ます", "hiragana": "はげます", "meaning": "khích lệ"},
+  {"kanji": "うなずく", "hiragana": "うなずく", "meaning": "gật đầu"},
+  {"kanji": "張り切る", "hiragana": "はりきる", "meaning": "hăng hái"},
+  {"kanji": "威張る", "hiragana": "いばる", "meaning": "kiêu ngạo"},
+  {"kanji": "怒鳴る", "hiragana": "どなる", "meaning": "hét lên"},
+  {"kanji": "暴れる", "hiragana": "あばれる", "meaning": "nổi giận, bạo lực"},
+  {"kanji": "しゃがむ", "hiragana": "しゃがむ", "meaning": "ngồi xổm"},
+  {"kanji": "どく", "hiragana": "どく", "meaning": "tránh ra"},
+  {"kanji": "どける", "hiragana": "どける", "meaning": "dẹp qua một bên"},
+  {"kanji": "被る", "hiragana": "かぶる", "meaning": "đội, chịu"},
+  {"kanji": "被せる", "hiragana": "かぶせる", "meaning": "phủ lên"},
+  {"kanji": "かじる", "hiragana": "かじる", "meaning": "gặm, nhấm"},
+  {"kanji": "撃つ", "hiragana": "うつ", "meaning": "bắn"},
+  {"kanji": "漕ぐ", "hiragana": "こぐ", "meaning": "chèo thuyền, đạp xe"},
+  {"kanji": "敷く", "hiragana": "しく", "meaning": "trải ra"},
+  {"kanji": "注ぐ", "hiragana": "つぐ", "meaning": "rót"},
+  {"kanji": "配る", "hiragana": "くばる", "meaning": "phân phát"},
+  {"kanji": "放る", "hiragana": "ほうる", "meaning": "ném, bỏ mặc"},
+  {"kanji": "掘る", "hiragana": "ほる", "meaning": "đào"},
+  {"kanji": "まく", "hiragana": "まく", "meaning": "rải, gieo"},
+  {"kanji": "計る・測る・量る", "hiragana": "はかる", "meaning": "đo lường"},
+  {"kanji": "占う", "hiragana": "うらなう", "meaning": "bói toán"},
+  {"kanji": "引っ張る", "hiragana": "ひっぱる", "meaning": "kéo"},
+  {"kanji": "突く", "hiragana": "つく", "meaning": "đâm, chọc"},
+  {"kanji": "突き当たる", "hiragana": "つきあたる", "meaning": "đâm vào, ngõ cụt"},
+  {"kanji": "立ち止まる", "hiragana": "たちどまる", "meaning": "đứng lại"},
+  {"kanji": "近寄る", "hiragana": "ちかよる", "meaning": "tiếp cận"},
+  {"kanji": "横切る", "hiragana": "よこぎる", "meaning": "băng qua"},
+  {"kanji": "転ぶ", "hiragana": "ころぶ", "meaning": "ngã"},
+  {"kanji": "つまずく", "hiragana": "つまずく", "meaning": "vấp ngã"},
+  {"kanji": "ひく", "hiragana": "ひく", "meaning": "chèn qua (xe cán)"},
+  {"kanji": "溺れる", "hiragana": "おぼれる", "meaning": "chìm, đắm chìm"},
+  {"kanji": "痛む", "hiragana": "いたむ", "meaning": "đau"},
+  {"kanji": "かかる", "hiragana": "かかる", "meaning": "bị nhiễm bệnh"},
+  {"kanji": "うなる", "hiragana": "うなる", "meaning": "rên rỉ"},
+  {"kanji": "こぼれる", "hiragana": "こぼれる", "meaning": "tràn out"},
+  {"kanji": "溢れる", "hiragana": "あふれる", "meaning": "ngập, tràn đầy"},
+  {"kanji": "冷める", "hiragana": "さめる", "meaning": "nguội"},
+  {"kanji": "冷ます", "hiragana": "さます", "meaning": "làm nguội"},
+  {"kanji": "湿る", "hiragana": "しめる", "meaning": "ẩm ướt"},
+  {"kanji": "凍る", "hiragana": "こおる", "meaning": "đóng băng"},
+  {"kanji": "震える", "hiragana": "ふるえる", "meaning": "run rẩy"},
+  {"kanji": "輝く", "hiragana": "かがやく", "meaning": "tỏa sáng"},
+  {"kanji": "溢れる", "hiragana": "あふれる", "meaning": "tràn đầy"},
+  {"kanji": "おびえる", "hiragana": "おびえる", "meaning": "sợ hãi"},
+  {"kanji": "戸惑う", "hiragana": "とまどう", "meaning": "hoang mang"},
+  {"kanji": "影響", "hiragana": "えいきょう", "meaning": "ảnh hưởng"},
+  {"kanji": "効果", "hiragana": "こうか", "meaning": "hiệu quả"},
+  {"kanji": "印象", "hiragana": "いんしょう", "meaning": "ấn tượng"},
+  {"kanji": "印", "hiragana": "しるし", "meaning": "dấu, dấu hiệu"},
+  {"kanji": "合図", "hiragana": "あいず", "meaning": "ám hiệu"},
+  {"kanji": "共通", "hiragana": "きょうつう", "meaning": "chung"},
+  {"kanji": "協調", "hiragana": "きょうちょう", "meaning": "nhấn mạnh"},
+  {"kanji": "省略", "hiragana": "しょうりゃく", "meaning": "lược bớt"},
+  {"kanji": "挑戦", "hiragana": "ちょうせん", "meaning": "thử thách"},
+  {"kanji": "やる気", "hiragana": "やるき", "meaning": "động lực"},
+  {"kanji": "勇気", "hiragana": "ゆうき", "meaning": "dũng cảm"},
+  {"kanji": "資格", "hiragana": "しかく", "meaning": "bằng cấp, tư cách"},
+  {"kanji": "申請", "hiragana": "しんせい", "meaning": "đăng ký, thỉnh nguyện"},
+  {"kanji": "本人", "hiragana": "ほんにん", "meaning": "chính chủ"},
+  {"kanji": "契約", "hiragana": "けいやく", "meaning": "hợp đồng"},
+  {"kanji": "証明", "hiragana": "しょうめい", "meaning": "chứng minh"},
+  {"kanji": "変更", "hiragana": "へんこう", "meaning": "thay đổi"},
+  {"kanji": "保存", "hiragana": "ほぞん", "meaning": "lưu trữ"},
+  {"kanji": "保護", "hiragana": "ほご", "meaning": "bảo hộ"},
+  {"kanji": "環境", "hiragana": "かんきょう", "meaning": "môi trường"},
+  {"kanji": "資源", "hiragana": "しげん", "meaning": "tài nguyên"},
+  {"kanji": "不足", "hiragana": "ふそく", "meaning": "thiếu thốn"},
+  {"kanji": "平均", "hiragana": "へいきん", "meaning": "trung bình"},
+  {"kanji": "割合", "hiragana": "わりあい", "meaning": "tỷ lệ"},
+  {"kanji": "商売", "hiragana": "しょうばい", "meaning": "thương mại"},
+  {"kanji": "商品", "hiragana": "しょうひん", "meaning": "sản phẩm"},
+  {"kanji": "質", "hiragana": "しつ", "meaning": "chất lượng"},
+  {"kanji": "型", "hiragana": "かた", "meaning": "kiểu mẫu"},
+  {"kanji": "生産", "hiragana": "せいさん", "meaning": "sản xuất"},
+  {"kanji": "消費", "hiragana": "しょうひ", "meaning": "tiêu dùng"},
+  {"kanji": "物価", "hiragana": "ぶっか", "meaning": "giá cả"},
+  {"kanji": "倒産", "hiragana": "とうさん", "meaning": "phá sản"},
+  {"kanji": "携帯", "hiragana": "けいたい", "meaning": "mang theo, di động"},
+  {"kanji": "現代", "hiragana": "げんだい", "meaning": "hiện đại"},
+  {"kanji": "世紀", "hiragana": "せいき", "meaning": "thế kỷ"},
+  {"kanji": "文化", "hiragana": "ぶんか", "meaning": "văn hóa"},
+  {"kanji": "都市", "hiragana": "とし", "meaning": "đô thị"},
+  {"kanji": "地方", "hiragana": "ちほう", "meaning": "địa phương"},
+  {"kanji": "戦争", "hiragana": "せんそう", "meaning": "chiến tranh"},
+  {"kanji": "平和", "hiragana": "へいわ", "meaning": "hòa bình"},
+  {"kanji": "上る", "hiragana": "のぼる", "meaning": "leo lên"},
+  {"kanji": "下る", "hiragana": "くだる", "meaning": "đi xuống"},
+  {"kanji": "進む", "hiragana": "すすむ", "meaning": "tiến lên"},
+  {"kanji": "進める", "hiragana": "すすめる", "meaning": "làm cho tiến lên"},
+  {"kanji": "通る", "hiragana": "とおる", "meaning": "thông qua, được chấp nhận, đi qua"},
+  {"kanji": "通す", "hiragana": "とおす", "meaning": "xuyên qua, thông qua"},
+  {"kanji": "超える・越える", "hiragana": "こえろ", "meaning": "vượt qua"},
+  {"kanji": "過ぎる", "hiragana": "すぎる", "meaning": "quá, đi qua"},
+  {"kanji": "過ごす", "hiragana": "すごす", "meaning": "trải qua thời gian"},
+  {"kanji": "移る", "hiragana": "うつる", "meaning": "di chuyển, lây"},
+  {"kanji": "移す", "hiragana": "うつす", "meaning": "làm di chuyển, lây"},
+  {"kanji": "連れる", "hiragana": "つれる", "meaning": "dẫn dắt"},
+  {"kanji": "寄る", "hiragana": "よる", "meaning": "ghé qua"},
+  {"kanji": "寄せる", "hiragana": "よせる", "meaning": "mang lại gần, thu hút"},
+  {"kanji": "集まる", "hiragana": "あつまる", "meaning": "tập hợp lại"},
+  {"kanji": "集める", "hiragana": "あつめる", "meaning": "thu thập"},
+  {"kanji": "好む", "hiragana": "このむ", "meaning": "thích"},
+  {"kanji": "嫌う", "hiragana": "きらう", "meaning": "ghét"},
+  {"kanji": "願う", "hiragana": "ねがう", "meaning": "ước, yêu cầu"},
+  {"kanji": "甘える", "hiragana": "あまえる", "meaning": "nũng nịu"},
+  {"kanji": "かわいがる", "hiragana": "かわいがる", "meaning": "yêu mến"},
+  {"kanji": "気づく", "hiragana": "きづく", "meaning": "nhận ra"},
+  {"kanji": "疑う", "hiragana": "うたがう", "meaning": "nghi ngờ"},
+  {"kanji": "苦しむ", "hiragana": "くるしむ", "meaning": "đau khổ"},
+  {"kanji": "悲しむ", "hiragana": "かなしむ", "meaning": "buồn bã"},
+  {"kanji": "がっかりする", "hiragana": "がっかりする", "meaning": "thất vọng"},
+  {"kanji": "励ます", "hiragana": "はげる", "meaning": "khích lệ"},
+  {"kanji": "うなずく", "hiragana": "うなずく", "meaning": "gật đầu"},
+  {"kanji": "張り切る", "hiragana": "はりきる", "meaning": "hăng hái"},
+  {"kanji": "威張る", "hiragana": "いばる", "meaning": "kiêu ngạo"},
+  {"kanji": "怒鳴る", "hiragana": "どなる", "meaning": "hét lên"},
+  {"kanji": "暴れる", "hiragana": "あばれる", "meaning": "nổi giận, bạo lực"},
+  {"kanji": "しゃがむ", "hiragana": "しゃがむ", "meaning": "ngồi xổm"},
+  {"kanji": "どく", "hiragana": "どく", "meaning": "tránh ra"},
+  {"kanji": "どける", "hiragana": "どける", "meaning": "dẹp qua một bên"},
+  {"kanji": "被る", "hiragana": "かぶる", "meaning": "đội, chịu"},
+  {"kanji": "被せる", "hiragana": "かぶせる", "meaning": "phủ lên"},
+  {"kanji": "かじる", "hiragana": "かじる", "meaning": "gặm, nhấm"},
+  {"kanji": "撃つ", "hiragana": "うつ", "meaning": "bắn"},
+  {"kanji": "漕ぐ", "hiragana": "こぐ", "meaning": "chèo thuyền, đạp xe"},
+  {"kanji": "敷く", "hiragana": "しく", "meaning": "trải ra"},
+  {"kanji": "注ぐ", "hiragana": "つぐ", "meaning": "rót"},
+  {"kanji": "配る", "hiragana": "くばる", "meaning": "phân phát"},
+  {"kanji": "放る", "hiragana": "ほうる", "meaning": "ném, bỏ mặc"},
+  {"kanji": "掘る", "hiragana": "ほる", "meaning": "đào"},
+  {"kanji": "まく", "hiragana": "まく", "meaning": "rải, gieo"},
+  {"kanji": "計る・測る・量る", "hiragana": "はかる", "meaning": "đo lường"},
+  {"kanji": "占う", "hiragana": "うらなう", "meaning": "bói toán"},
+  {"kanji": "引っ張る", "hiragana": "ひっぱる", "meaning": "kéo"},
+  {"kanji": "突く", "hiragana": "つく", "meaning": "đâm, chọc"},
+  {"kanji": "突き当たる", "hiragana": "つきあたる", "meaning": "đâm vào, ngõ cụt"},
+  {"kanji": "立ち止まる", "hiragana": "たちどまる", "meaning": "đứng lại"},
+  {"kanji": "近寄る", "hiragana": "ちかよる", "meaning": "tiếp cận"},
+  {"kanji": "横切る", "hiragana": "よこぎる", "meaning": "băng qua"},
+  {"kanji": "転ぶ", "hiragana": "ころぶ", "meaning": "ngã"},
+  {"kanji": "つまずく", "hiragana": "つまずく", "meaning": "vấp ngã"},
+  {"kanji": "ひく", "hiragana": "ひく", "meaning": "chèn qua (xe cán)"},
+  {"kanji": "溺れる", "hiragana": "おぼれる", "meaning": "chìm, đắm chìm"},
+  {"kanji": "痛む", "hiragana": "いたむ", "meaning": "đau"},
+  {"kanji": "かかる", "hiragana": "かかる", "meaning": "bị nhiễm bệnh"},
+  {"kanji": "うなる", "hiragana": "うなる", "meaning": "rên rỉ"},
+  {"kanji": "こぼれる", "hiragana": "こぼれる", "meaning": "tràn out"},
+  {"kanji": "溢れる", "hiragana": "あふれる", "meaning": "ngập, tràn đầy"},
+  {"kanji": "冷める", "hiragana": "さめる", "meaning": "nguội"},
+  {"kanji": "冷ます", "hiragana": "さます", "meaning": "làm nguội"},
+  {"kanji": "湿る", "hiragana": "しめる", "meaning": "ẩm ướt"},
+  {"kanji": "凍る", "hiragana": "こおる", "meaning": "đóng băng"},
+  {"kanji": "震える", "hiragana": "ふるえる", "meaning": "run rẩy"},
+  {"kanji": "輝く", "hiragana": "かがやく", "meaning": "tỏa sáng"},
+  {"kanji": "溢れる", "hiragana": "あふれる", "meaning": "tràn đầy"},
+  {"kanji": "おびえる", "hiragana": "おびえる", "meaning": "sợ hãi"},
+  {"kanji": "戸惑う", "hiragana": "とまどう", "meaning": "hoang mang"},
+  {"kanji": "続く", "hiragana": "つづく", "meaning": "tiếp tục, xảy ra, lặp lại, theo sau"},
+  {"kanji": "続ける", "hiragana": "つづける", "meaning": "tiếp tục, xảy ra liên tiếp"},
+  {"kanji": "つながる", "hiragana": "つながる", "meaning": "được kết nối, được mở rộng, thông qua"},
+  {"kanji": "つなぐ", "hiragana": "つなぐ", "meaning": "kết nối, tham gia"},
+  {"kanji": "つなげる", "hiragana": "つなげる", "meaning": "kết nối, làm chặt thêm"},
+  {"kanji": "伸びる", "hiragana": "のびる", "meaning": "lớn lên, tăng thêm, dài ra"},
+  {"kanji": "伸ばす", "hiragana": "のばす", "meaning": "nuôi dài, căng ra"},
+  {"kanji": "延びる", "hiragana": "のびる", "meaning": "bị trì hoãn, bị kéo dài"},
+  {"kanji": "延ばす", "hiragana": "のばす", "meaning": "trì hoãn, mở rộng thời gian"},
+  {"kanji": "重なる", "hiragana": "かさなる", "meaning": "chồng chất lên nhau, trùng hợp"},
+  {"kanji": "重ねる", "hiragana": "かさねる", "meaning": "chồng lên, lặp lại"},
+  {"kanji": "広がる", "hiragana": "ひろがる", "meaning": "mở rộng, bùng phát, lan tràn"},
+  {"kanji": "広げる", "hiragana": "ひろげる", "meaning": "làm rộng ra, mở rộng"},
+  {"kanji": "載る", "hiragana": "のる", "meaning": "được đăng lên, đặt lên"},
+  {"kanji": "載せる", "hiragana": "のせる", "meaning": "đăng lên, cho lên xe"},
+  {"kanji": "揃う", "hiragana": "そろう", "meaning": "thu thập đầy đủ, tụ họp"},
+  {"kanji": "揃える", "hiragana": "そろえる", "meaning": "gom lại, sắp xếp đều nhau"},
+  {"kanji": "まとまる", "hiragana": "まとまる", "meaning": "được thống nhất, thu thập lại"},
+  {"kanji": "まとめる", "hiragana": "まとめる", "meaning": "thống nhất, tóm tắt, gom lại"},
+  {"kanji": "付く", "hiragana": "つく", "meaning": "được đính kèm, dính vào"},
+  {"kanji": "付ける", "hiragana": "つける", "meaning": "đính vào, viết record"},
+  {"kanji": "溜まる", "hiragana": "たまる", "meaning": "bị tích tụ, dồn ứ"},
+  {"kanji": "溜める", "hiragana": "ためる", "meaning": "tích góp, dồn lại"},
+  {"kanji": "交じる・混じる", "hiragana": "まじる", "meaning": "bị trộn lẫn"},
+  {"kanji": "交ざる・混ざる", "hiragana": "まざる", "meaning": "được trộn đều vào nhau"},
+  {"kanji": "交ぜる・混ぜる", "hiragana": "まぜる", "meaning": "trộn lẫn, khuấy"},
+  {"kanji": "解ける・溶ける", "hiragana": "とける", "meaning": "được giải quyết, tan chảy"},
+  {"kanji": "解く・溶く", "hiragana": "とく", "meaning": "giải quyết, làm tan"},
+  {"kanji": "含む", "hiragana": "ふくむ", "meaning": "bao gồm, ngậm"},
+  {"kanji": "含める", "hiragana": "ふくめる", "meaning": "bao gồm cả"},
+  {"kanji": "抜ける", "hiragana": "ぬける", "meaning": "rút ra, rụng rơi, bỏ sót"},
+  {"kanji": "抜く", "hiragana": "ぬく", "meaning": "nhổ, bứt, bỏ qua"},
+  {"kanji": "現れる", "hiragana": "あらわれる", "meaning": "xuất hiện, lộ diện"},
+  {"kanji": "現す", "hiragana": "あらす", "meaning": "hiển thị, bày tỏ"},
+  {"kanji": "表れる", "hiragana": "あらわれる", "meaning": "biểu hiện ra bên ngoài"},
+  {"kanji": "表す", "hiragana": "あらわす", "meaning": "biểu thị, đại diện"},
+  {"kanji": "出る", "hiragana": "でる", "meaning": "xuất hiện, rời đi"},
+  {"kanji": "出す", "hiragana": "だす", "meaning": "nộp, lấy ra"},
+  {"kanji": "突く", "hiragana": "つく", "meaning": "đâm, chọc"},
+  {"kanji": "突き当たる", "hiragana": "つきあたる", "meaning": "đâm vào, ngõ cụt"},
+  {"kanji": "立ち止まる", "hiragana": "たちどまる", "meaning": "đứng lại"},
+  {"kanji": "近寄る", "hiragana": "ちかよる", "meaning": "tiếp cận"},
+  {"kanji": "横切る", "hiragana": "よこぎる", "meaning": "băng qua"},
+  {"kanji": "転ぶ", "hiragana": "ころぶ", "meaning": "ngã"},
+  {"kanji": "つまずく", "hiragana": "つまずく", "meaning": "vấp ngã"},
+  {"kanji": "ひく", "hiragana": "ひく", "meaning": "chèn qua (xe cán)"},
+  {"kanji": "溺れる", "hiragana": "おぼれる", "meaning": "chìm, đắm chìm"},
+  {"kanji": "痛む", "hiragana": "いたむ", "meaning": "đau"},
+  {"kanji": "かかる", "hiragana": "かかる", "meaning": "bị nhiễm bệnh"},
+  {"kanji": "うなる", "hiragana": "うなる", "meaning": "rên rỉ"},
+  {"kanji": "こぼれる", "hiragana": "こぼれる", "meaning": "tràn out"},
+  {"kanji": "溢れる", "hiragana": "あふれる", "meaning": "ngập, tràn đầy"},
+  {"kanji": "冷める", "hiragana": "さめる", "meaning": "nguội"},
+  {"kanji": "冷ます", "hiragana": "さます", "meaning": "làm nguội"},
+  {"kanji": "湿る", "hiragana": "しめる", "meaning": "ẩm ướt"},
+  {"kanji": "凍る", "hiragana": "こおる", "meaning": "đóng băng"},
+  {"kanji": "震える", "hiragana": "ふるえる", "meaning": "run rẩy"},
+  {"kanji": "輝く", "hiragana": "かがやく", "meaning": "tỏa sáng"},
+  {"kanji": "溢れる", "hiragana": "あふれる", "meaning": "tràn đầy"},
+  {"kanji": "おびえる", "hiragana": "おびえる", "meaning": "sợ hãi"},
+  {"kanji": "戸惑う", "hiragana": "とまどう", "meaning": "hoang mang"},
+  {"kanji": "パートナー", "hiragana": "パートナー", "meaning": "đối tác"},
+  {"kanji": "リーダー", "hiragana": "リーダー", "meaning": "lãnh đạo"},
+  {"kanji": "ボランティア", "hiragana": "ボランティア", "meaning": "tình nguyện"},
+  {"kanji": "コミュニケーション", "hiragana": "コミュニケーション", "meaning": "giao tiếp"},
+  {"kanji": "ユーモア", "hiragana": "ユーモア", "meaning": "hài hước, đùa"},
+  {"kanji": "ショック", "hiragana": "ショック", "meaning": "shock, choáng"},
+  {"kanji": "ストレス", "hiragana": "ストレス", "meaning": "căng thẳng, stress"},
+  {"kanji": "バランス", "hiragana": "バランス", "meaning": "cân bằng"},
+  {"kanji": "レベル", "hiragana": "レベル", "meaning": "trình độ, level"},
+  {"kanji": "アップ", "hiragana": "アップ", "meaning": "vươn lên, up"},
+  {"kanji": "ダウン", "hiragana": "ダウン", "meaning": "giảm xuống"},
+  {"kanji": "プラス", "hiragana": "プラス", "meaning": "điểm cộng, dương"},
+  {"kanji": "マイナス", "hiragana": "マイナス", "meaning": "điểm trừ, âm"},
+  {"kanji": "イメージ", "hiragana": "イメージ", "meaning": "hình ảnh, ấn tượng"},
+  {"kanji": "コンテスト", "hiragana": "コンテスト", "meaning": "cuộc thi"},
+  {"kanji": "マスコミ", "hiragana": "マスコミ", "meaning": "truyền thông đại chúng"},
+  {"kanji": "プライバシー", "hiragana": "プライバシー", "meaning": "sự riêng tư"},
+  {"kanji": "オフィス", "hiragana": "オフィス", "meaning": "văn phòng"},
+  {"kanji": "ルール", "hiragana": "ルール", "meaning": "luật lệ"},
+  {"kanji": "マナー", "hiragana": "マナー", "meaning": "phép tắc, ứng xử"},
+  {"kanji": "ミス", "hiragana": "ミス", "meaning": "lỗi lầm"},
+  {"kanji": "スケジュール", "hiragana": "スケジュール", "meaning": "lịch trình"},
+  {"kanji": "タイトル", "hiragana": "タイトル", "meaning": "tiêu đề"},
+  {"kanji": "テーマ", "hiragana": "テーマ", "meaning": "chủ đề"},
+  {"kanji": "ストーリー", "hiragana": "ストーリー", "meaning": "câu chuyện"},
+  {"kanji": "ヒット", "hiragana": "ヒット", "meaning": "thành công lớn, đỉnh cao"},
+  {"kanji": "ブランド", "hiragana": "ブランド", "meaning": "nhãn hiệu"},
+  {"kanji": "レンタル", "hiragana": "レンタル", "meaning": "thuê"},
+  {"kanji": "リサイクル", "hiragana": "リサイクル", "meaning": "tái chế"},
+  {"kanji": "ラベル", "hiragana": "ラベル", "meaning": "nhãn mác"},
+  {"kanji": "タイプ", "hiragana": "タイプ", "meaning": "loại"},
+  {"kanji": "スタイル", "hiragana": "スタイル", "meaning": "phong cách"},
+  {"kanji": "セット", "hiragana": "セット", "meaning": "bộ, đặt ra"},
+  {"kanji": "ウイルス", "hiragana": "ウイルス", "meaning": "vi rút"},
+  {"kanji": "ロボット", "hiragana": "ロボット", "meaning": "người máy"},
+  {"kanji": "エネルギー", "hiragana": "エネルギー", "meaning": "năng lượng"},
+  {"kanji": "デジタル", "hiragana": "デジタル", "meaning": "kỹ thuật số"},
+  {"kanji": "ぐっすり", "hiragana": "ぐっすり", "meaning": "say"},
+  {"kanji": "きちんと", "hiragana": "きちんと", "meaning": "ngay ngắn"},
+  {"kanji": "しっかり", "hiragana": "しっかり", "meaning": "kiên quyết, chắc chắn, đáng tin cậy"},
+  {"kanji": "はっきり", "hiragana": "はっきり", "meaning": "rõ ràng"},
+  {"kanji": "じっと", "hiragana": "じっと", "meaning": "kiên nhẫn, chăm chú, chằm chằm"},
+  {"kanji": "そっと", "hiragana": "そっと", "meaning": "nhẹ nhàng, yên lặng"},
+  {"kanji": "別々に", "hiragana": "べつべつに", "meaning": "riêng biệt"},
+  {"kanji": "それぞれ", "hiragana": "それぞれ", "meaning": "lần lượt, tương ứng"},
+  {"kanji": "互いに", "hiragana": "おたがいに", "meaning": "lẫn nhau"},
+  {"kanji": "直接", "hiragana": "ちょくせつ", "meaning": "trực tiếp"},
+  {"kanji": "本当に", "hiragana": "ほんとうに", "meaning": "thật sự"},
+  {"kanji": "必ず", "hiragana": "かならず", "meaning": "nhất định"},
+  {"kanji": "絶対に", "hiragana": "ぜったいに", "meaning": "tuyệt đối"},
+  {"kanji": "特に", "hiragana": "とくに", "meaning": "đặc biệt"},
+  {"kanji": "少なくとも", "hiragana": "すくなくとも", "meaning": "ít nhất"},
+  {"kanji": "決して", "hiragana": "けっして", "meaning": "không bao giờ"},
+  {"kanji": "少しも", "hiragana": "すこしも", "meaning": "một chút cũng không"},
+  {"kanji": "ちっとも", "hiragana": "ちっとも", "meaning": "không chút nào"},
+  {"kanji": "まったく", "hiragana": "まったく", "meaning": "hoàn toàn"},
+  {"kanji": "さほど", "hiragana": "さほど", "meaning": "không hẳn"},
+  {"kanji": "どんなに", "hiragana": "どんなに", "meaning": "thế nào đi nữa"},
+  {"kanji": "どうして", "hiragana": "どうして", "meaning": "tại sao"},
+  {"kanji": "どのように", "hiragana": "どのように", "meaning": "như thế nào"},
+  {"kanji": "いくら", "hiragana": "いくら", "meaning": "bao nhiêu"},
+  {"kanji": "たとえ", "hiragana": "たとえ", "meaning": "ví dụ"},
+  {"kanji": "万一", "hiragana": "まんいち", "meaning": "vạn nhất, lỡ như"},
+  {"kanji": "一体", "hiragana": "いったい", "meaning": "rốt cục"}
+];
+
+const key = c => c.kanji + '§' + c.meaning;
+const learnt = new Set(), hard = new Set();
+
+let deck = [...ALL], idx = 0, flipped = false, studyingHard = false;
+let customDeck = [], customIdx = 0, customFlipped = false;
+
+function id(s) { return document.getElementById(s); }
+
+/* ── MAIN DECK PLAYBACK ── */
+function render() {
+  if (!deck.length) {
+    id('kj').textContent = '完了'; id('hr').textContent = ''; id('mn').textContent = 'Mọi thứ đã xong!';
+    id('pos').textContent = '0 / 0'; id('pbar').style.width = '100%'; return;
+  }
+  const c = deck[idx];
+  const side = id('main-side').value;
+  
+  if (side === 'ja') {
+    id('kj').textContent = c.kanji;
+    id('hr').textContent = (c.hiragana !== c.kanji) ? c.hiragana : '';
+    id('mn').textContent = c.meaning;
+  } else {
+    id('kj').textContent = c.meaning;
+    id('hr').textContent = '';
+    id('mn').textContent = c.kanji + ((c.hiragana !== c.kanji) ? ` (${c.hiragana})` : '');
+  }
+
+  id('card3d').classList.remove('flipped');
+  flipped = false;
+  const pct = (idx + 1) / deck.length * 100;
+  id('pbar').style.width = pct + '%';
+  id('pos').textContent = (idx + 1) + ' / ' + deck.length;
+  updateStats();
+}
+
+function flip() {
+  if (!deck.length) return;
+  flipped = !flipped;
+  id('card3d').classList.toggle('flipped', flipped);
+}
+
+function next() { if (!deck.length) return; idx = (idx + 1) % deck.length; render(); }
+function prev() { if (!deck.length) return; idx = (idx - 1 + deck.length) % deck.length; render(); }
+
+function markLearnt() {
+  if (!deck.length) return;
+  const c = deck[idx];
+  learnt.add(key(c));
+  hard.delete(key(c));
+  deck.splice(idx, 1);
+  if (!deck.length) {
+    studyingHard = false;
+    deck = [...ALL].filter(c => !learnt.has(key(c)));
+  }
+  idx = Math.min(idx, Math.max(0, deck.length - 1));
+  render(); updateTabCounts();
+  if (currentTab === 'learnt') renderList('learnt');
+  if (currentTab === 'hard') renderList('hard');
+}
+
+function markHard() {
+  if (!deck.length) return;
+  const c = deck[idx];
+  if (!learnt.has(key(c))) hard.add(key(c));
+  next(); updateTabCounts();
+  if (currentTab === 'hard') renderList('hard');
+}
+
+function skipCard() { next(); }
+function shuffle() { deck.sort(() => Math.random() - .5); idx = 0; render(); }
+
+function resetProgress() {
+  if(!confirm("Reset progress for all entries?")) return;
+  learnt.clear(); hard.clear(); deck = [...ALL]; idx = 0; studyingHard = false;
+  id('search').value = ''; id('badge').textContent = ALL.length + ' cards';
+  render(); updateTabCounts();
+  ['learnt', 'hard', 'all'].forEach(t => renderList(t));
+}
+
+function filterCards() {
+  const q = id('search').value.trim().toLowerCase();
+  if (!q) { deck = ALL.filter(c => !learnt.has(key(c))); }
+  else { deck = ALL.filter(c => (c.kanji.includes(q) || c.hiragana.includes(q) || c.meaning.toLowerCase().includes(q)) && !learnt.has(key(c))); }
+  id('badge').textContent = deck.length + ' cards'; idx = 0; render();
+}
+
+function studyHard() {
+  const hd = ALL.filter(c => hard.has(key(c)));
+  if (!hd.length) return;
+  studyingHard = true; deck = [...hd]; idx = 0; switchTab('study'); render();
+  id('badge').textContent = deck.length + ' hard cards';
+}
+
+function updateStats() {
+  id('s-total').textContent = ALL.length;
+  id('s-learnt').textContent = learnt.size;
+  id('s-hard').textContent = hard.size;
+  id('s-left').textContent = deck.length;
+}
+
+function updateTabCounts() {
+  id('tab-learnt-ct').textContent = learnt.size ? '(' + learnt.size + ')' : '';
+  id('tab-hard-ct').textContent = hard.size ? '(' + hard.size + ')' : '';
+  updateStats();
+}
+
+function unmarkLearnt(c) {
+  learnt.delete(key(c)); deck = [...ALL].filter(x => !learnt.has(key(x)));
+  idx = Math.min(idx, Math.max(0, deck.length - 1)); updateTabCounts(); renderList('learnt'); if (currentTab === 'study') render();
+}
+function unmarkHard(c) { hard.delete(key(c)); updateTabCounts(); renderList('hard'); }
+
+function getFilteredList(type) {
+  const qEl = id('search-' + type);
+  const q = qEl ? qEl.value.trim().toLowerCase() : '';
+  let base = ALL;
+  if (type === 'learnt') base = ALL.filter(c => learnt.has(key(c)));
+  else if (type === 'hard') base = ALL.filter(c => hard.has(key(c)));
+  if (!q) return base;
+  return base.filter(c => c.kanji.includes(q) || c.hiragana.includes(q) || c.meaning.toLowerCase().includes(q));
+}
+
+function renderList(type) {
+  const el = id('list-' + type);
+  if (!el) return;
+  const items = getFilteredList(type);
+  if (type === 'all') id('all-ct').textContent = items.length + ' words';
+  if (!items.length) { el.innerHTML = '<div class="empty">' + (type === 'learnt' ? 'Chưa học từ nào' : type === 'hard' ? 'Không có từ khó nào' : 'Không tìm thấy kết quả') + '</div>'; return; }
+  
+  el.innerHTML = items.map(c => {
+    const lmark = learnt.has(key(c));
+    const hmark = hard.has(key(c));
+    const badge = lmark ? '<span class="word-badge badge-learnt">learnt</span>' : hmark ? '<span class="word-badge badge-hard">hard</span>' : '';
+    const actions = type === 'learnt'
+      ? `<button onclick="unmarkLearnt(ALL.find(x=>x.kanji===\`${c.kanji.replace(/`/g, '\\`')}\`&&x.meaning===\`${c.meaning.replace(/`/g, '\\`')}\`))">Remove</button>`
+      : type === 'hard'
+      ? `<button onclick="unmarkHard(ALL.find(x=>x.kanji===\`${c.kanji.replace(/`/g, '\\`')}\`&&x.meaning===\`${c.meaning.replace(/`/g, '\\`')}\`))">Remove</button>`
+      : `<button onclick="addLearntFromList(ALL.find(x=>x.kanji===\`${c.kanji.replace(/`/g, '\\`')}\`&&x.meaning===\`${c.meaning.replace(/`/g, '\\`')}\`))"><i class='ti ti-check'></i></button><button onclick="addHardFromList(ALL.find(x=>x.kanji===\`${c.kanji.replace(/`/g, '\\`')}\`&&x.meaning===\`${c.meaning.replace(/`/g, '\\`')}\`))"><i class='ti ti-flag'></i></button>`;
+    return `<div class="word-row"><span class="word-kanji">${c.kanji}</span><span class="word-hira">${c.hiragana !== c.kanji ? c.hiragana : ''}</span><span class="word-mean">${c.meaning}</span>${badge}${actions}</div>`;
+  }).join('');
+}
+
+function addLearntFromList(c) { if (!c) return; learnt.add(key(c)); hard.delete(key(c)); deck = [...ALL].filter(x => !learnt.has(key(x))); idx = Math.min(idx, Math.max(0, deck.length - 1)); updateTabCounts(); renderList('all'); renderList('learnt'); if(currentTab==='study')render();}
+function addHardFromList(c) { if (!c) return; if (!learnt.has(key(c))) hard.add(key(c)); updateTabCounts(); renderList('all'); renderList('hard'); }
+
+function clearList(type) {
+  if (type === 'learnt') { learnt.clear(); deck = [...ALL]; } else { hard.clear(); }
+  updateTabCounts(); renderList(type); if (type === 'learnt') render();
+}
+
+let currentTab = 'study';
+function switchTab(t) {
+  currentTab = t;
+  const tabs = ['study', 'learnt', 'hard', 'all', 'myvocab', 'notebook'];
+  document.querySelectorAll('.tab').forEach((el, i) => el.classList.toggle('active', tabs[i] === t));
+  document.querySelectorAll('.panel').forEach(el => el.classList.remove('active'));
+  id('panel-' + t).classList.add('active');
+  if (['learnt', 'hard', 'all'].includes(t)) renderList(t);
+  if (t === 'myvocab') renderMyVocab();
+  if (t === 'notebook') renderNotebook();
+}
+
+/* ── CUSTOM VOCAB SETS ENGINE ── */
+let MY_VOCAB_PAGES = JSON.parse(localStorage.getItem('jlpt_myvocab_pages') || '[]');
+let currentVocabPageId = null, editingVocabIdx = null, isCustomStudying = false;
+
+function saveMyVocab() { localStorage.setItem('jlpt_myvocab_pages', JSON.stringify(MY_VOCAB_PAGES)); }
+function updateMyVocabCount() {
+  const pageCount = MY_VOCAB_PAGES.length;
+  id('tab-myvocab-ct').textContent = pageCount ? '(' + pageCount + ')' : '';
+  id('myvocab-ct').textContent = pageCount + ' notebook page' + (pageCount === 1 ? '' : 's');
+}
+
+function createVocabPage() {
+  const titleInput = id('new-page-title');
+  const title = titleInput.value.trim() || 'Untitled Page ' + (MY_VOCAB_PAGES.length + 1);
+  MY_VOCAB_PAGES.push({ id: Date.now(), title: title, words: [] });
+  titleInput.value = ''; saveMyVocab(); renderMyVocab();
+}
+
+function deleteVocabPage(pageId, event) {
+  if (event) event.stopPropagation();
+  const targetPage = MY_VOCAB_PAGES.find(p => p.id === pageId);
+  if (!targetPage || !confirm('Delete notebook page "' + targetPage.title + '"?')) return;
+  MY_VOCAB_PAGES = MY_VOCAB_PAGES.filter(p => p.id !== pageId);
+  if (currentVocabPageId === pageId) currentVocabPageId = null;
+  saveMyVocab(); renderMyVocab();
+}
+
+function selectVocabPage(pageId) { currentVocabPageId = pageId; closeVocabForm(); id('search-myvocab').value = ''; renderMyVocab(); }
+function backToPagesIndex() { currentVocabPageId = null; renderMyVocab(); }
+
+function openAddVocab() {
+  editingVocabIdx = null; id('vf-kanji').value = ''; id('vf-hira').value = ''; id('vf-mean').value = '';
+  id('form-title').textContent = 'Add new word'; id('form-save-btn').textContent = 'Save';
+  id('vocab-form').style.display = ''; id('vf-kanji').focus();
+}
+
+function openEditVocab(i) {
+  editingVocabIdx = i; const page = MY_VOCAB_PAGES.find(p => p.id === currentVocabPageId); const w = page.words[i];
+  id('vf-kanji').value = w.kanji; id('vf-hira').value = w.hiragana; id('vf-mean').value = w.meaning;
+  id('form-title').textContent = 'Edit word'; id('form-save-btn').textContent = 'Update';
+  id('vocab-form').style.display = ''; id('vf-kanji').focus();
+}
+
+function closeVocabForm() { id('vocab-form').style.display = 'none'; editingVocabIdx = null; }
+
+function saveVocab() {
+  const kanji = id('vf-kanji').value.trim(), hira = id('vf-hira').value.trim(), mean = id('vf-mean').value.trim();
+  if (!kanji || !mean) { alert('Word and meaning are required.'); return; }
+  const page = MY_VOCAB_PAGES.find(p => p.id === currentVocabPageId); if (!page) return;
+  const entry = { kanji, hiragana: hira || kanji, meaning: mean };
+  if (editingVocabIdx !== null) { page.words[editingVocabIdx] = entry; } else { page.words.unshift(entry); }
+  saveMyVocab(); closeVocabForm(); renderMyVocab();
+}
+
+function deleteVocab(i) {
+  const page = MY_VOCAB_PAGES.find(p => p.id === currentVocabPageId); if (!page || !confirm('Delete "' + page.words[i].kanji + '"?')) return;
+  page.words.splice(i, 1); saveMyVocab(); renderMyVocab();
+}
+
+function renderMyVocab() {
+  updateMyVocabCount();
+  if (!isCustomStudying) id('myvocab-study-view').style.display = 'none';
+
+  if (currentVocabPageId === null) {
+    id('myvocab-index-view').style.display = ''; id('myvocab-single-page-view').style.display = 'none';
+    const el = id('list-vocab-pages');
+    if (!MY_VOCAB_PAGES.length) { el.innerHTML = '<div class="empty">No notebook pages yet — create one above!</div>'; return; }
+    el.innerHTML = MY_VOCAB_PAGES.map(p => `
+      <div class="word-row" style="cursor:pointer; padding:12px 10px;" onclick="selectVocabPage(${p.id})">
+        <span style="font-weight:600; color:var(--blue-7); flex:1;">📓 ${escHtml(p.title)}</span>
+        <span class="badge" style="margin-right:12px;">${p.words.length} từ</span>
+        <button onclick="deleteVocabPage(${p.id}, event)" title="Delete Page" style="color:var(--color-text-danger)">🗑</button>
+      </div>
+    `).join('');
+  } else if (!isCustomStudying) {
+    id('myvocab-index-view').style.display = 'none'; id('myvocab-single-page-view').style.display = '';
+    const page = MY_VOCAB_PAGES.find(p => p.id === currentVocabPageId); if (!page) { currentVocabPageId = null; renderMyVocab(); return; }
+    id('current-page-title-header').textContent = '📓 ' + page.title;
+    
+    const q = (id('search-myvocab').value || '').trim().toLowerCase();
+    const el = id('list-myvocab');
+    const items = q ? page.words.filter(w => w.kanji.includes(q) || w.hiragana.includes(q) || w.meaning.toLowerCase().includes(q)) : page.words;
+      
+    if (!items.length) { el.innerHTML = '<div class="empty">' + (page.words.length ? 'Không tìm thấy từ này' : 'Trống') + '</div>'; return; }
+    el.innerHTML = items.map((w, i) => {
+      const realIdx = page.words.indexOf(w);
+      return `<div class="word-row">
+        <span class="word-kanji">${w.kanji}</span>
+        <span class="word-hira">${w.hiragana !== w.kanji ? w.hiragana : ''}</span>
+        <span class="word-mean">${w.meaning}</span>
+        <button onclick="openEditVocab(${realIdx})">✏️</button>
+        <button onclick="deleteVocab(${realIdx})" style="color:var(--color-text-danger)">🗑</button>
+      </div>`;
+    }).join('');
+  }
+}
+
+/* ── ISOLATED SEPARATED PLAYBACK FOR "MY VOCAB" ── */
+function startCustomStudy() {
+  const page = MY_VOCAB_PAGES.find(p => p.id === currentVocabPageId);
+  if (!page || !page.words.length) { alert('Please add at least one word to this notebook page first!'); return; }
+  isCustomStudying = true; customDeck = page.words.map(w => ({ ...w })); customIdx = 0; customFlipped = false;
+  id('myvocab-index-view').style.display = 'none'; id('myvocab-single-page-view').style.display = 'none';
+  id('myvocab-study-view').style.display = ''; id('custom-badge').textContent = customDeck.length + ' cards';
+  renderCustom();
+}
+function exitCustomStudy() { isCustomStudying = false; renderMyVocab(); }
+function shuffleCustom() { customDeck.sort(() => Math.random() - .5); customIdx = 0; renderCustom(); }
+
+function renderCustom() {
+  if (!customDeck.length) return;
+  const c = customDeck[customIdx]; const side = id('custom-side').value;
+  if (side === 'ja') {
+    id('c-kj').textContent = c.kanji; id('c-hr').textContent = (c.hiragana !== c.kanji) ? c.hiragana : ''; id('c-mn').textContent = c.meaning;
+  } else {
+    id('c-kj').textContent = c.meaning; id('c-hr').textContent = ''; id('c-mn').textContent = c.kanji + ((c.hiragana !== c.kanji) ? ` (${c.hiragana})` : '');
+  }
+  id('custom-card3d').classList.remove('flipped'); customFlipped = false;
+  const pct = (customIdx + 1) / customDeck.length * 100; id('c-pbar').style.width = pct + '%';
+  id('c-pos').textContent = (customIdx + 1) + ' / ' + customDeck.length;
+}
+function flipCustom() { if (!customDeck.length) return; customFlipped = !customFlipped; id('custom-card3d').classList.toggle('flipped', customFlipped); }
+function nextCustom() { if (!customDeck.length) return; customIdx = (customIdx + 1) % customDeck.length; renderCustom(); }
+function prevCustom() { if (!customDeck.length) return; customIdx = (customIdx - 1 + customDeck.length) % customDeck.length; renderCustom(); }
+
+/* ── PRIVACY NOTES ENGINE ── */
+let NOTES = JSON.parse(localStorage.getItem('jlpt_notes') || '[]');
+function saveNotes() { localStorage.setItem('jlpt_notes', JSON.stringify(NOTES)); }
+function addNote() {
+  const title = id('note-title-input').value.trim() || 'Note';
+  NOTES.unshift({ id: Date.now(), title, body: '', expanded: true });
+  id('note-title-input').value = ''; saveNotes(); renderNotebook();
+}
+function updateNoteBody(nid, el) {
+  const n = NOTES.find(x => x.id === nid);
+  if (n) { n.body = el.innerHTML; saveNotes(); }
+}
+function deleteNote(nid) { if (confirm('Delete this note?')) { NOTES = NOTES.filter(x => x.id !== nid); saveNotes(); renderNotebook(); } }
+
+/* Rich-text formatting helpers */
+function noteCmd(nid, cmd, val) {
+  const editor = document.getElementById('editor-' + nid);
+  if (!editor) return;
+  editor.focus();
+  document.execCommand(cmd, false, val || null);
+  updateNoteBody(nid, editor);
+}
+function noteHighlight(nid, color) {
+  const editor = document.getElementById('editor-' + nid);
+  if (!editor) return;
+  editor.focus();
+  document.execCommand('hiliteColor', false, color);
+  updateNoteBody(nid, editor);
+}
+function noteForeColor(nid, color) {
+  const editor = document.getElementById('editor-' + nid);
+  if (!editor) return;
+  editor.focus();
+  document.execCommand('foreColor', false, color);
+  updateNoteBody(nid, editor);
+}
+
+function renderNotebook() {
+  const el = id('notebook-list');
+  if (!NOTES.length) { el.innerHTML = '<div class="empty">No notes yet.</div>'; return; }
+  el.innerHTML = NOTES.map(n => `
+    <div style="border:1px solid var(--blue-2);border-radius:var(--border-radius-md);margin-bottom:.6rem;overflow:hidden">
+      <div style="display:flex;align-items:center;gap:8px;padding:.55rem .75rem;background:var(--blue-0);cursor:pointer" onclick="toggleNote(${n.id})">
+        <span data-note-header="${n.id}" style="font-size:13px;flex:1;font-weight:600;color:var(--blue-7)">${escHtml(n.title)}</span>
+        <button onclick="event.stopPropagation();deleteNote(${n.id})" style="font-size:11px;padding:2px 7px;min-width:0;color:var(--color-text-danger)">🗑</button>
+        <span style="font-size:12px;color:var(--blue-4)">${n.expanded ? '▲' : '▼'}</span>
+      </div>
+      ${n.expanded ? `<div style="padding:.5rem .75rem .75rem">
+        <input type="text" value="${escHtml(n.title)}" placeholder="Title"
+          style="width:100%;font-size:13px;font-weight:500;margin-bottom:.5rem;padding:4px;border:1px solid var(--blue-2);border-radius:var(--border-radius-sm);background:var(--blue-0);color:var(--blue-7);"
+          oninput="updateNoteTitle(${n.id},this.value)" onblur="saveNotes()">
+
+        <div class="note-toolbar">
+          <button title="Underline (Ctrl+U)" onclick="noteCmd(${n.id},'underline')"><u>U</u></button>
+          <button title="Strikethrough" onclick="noteCmd(${n.id},'strikeThrough')"><s>S</s></button>
+          <div class="sep"></div>
+          <label title="Highlight color">🖍
+            <input type="color" value="#fff176" title="Highlight color"
+              oninput="noteHighlight(${n.id},this.value)">
+          </label>
+          <div class="sep"></div>
+          <label title="Text color">A
+            <input type="color" value="#e03131" title="Text color"
+              oninput="noteForeColor(${n.id},this.value)">
+          </label>
+          <button onclick="noteForeColor(${n.id},'inherit')" title="Reset text color" style="font-size:11px;">✕ color</button>
+        </div>
+
+        <div id="editor-${n.id}" class="note-editor" contenteditable="true"
+          data-placeholder="Write notes here…"
+          oninput="updateNoteBody(${n.id},this)">${n.body}</div>
+      </div>` : ''}
+    </div>
+  `).join('');
+}
+function toggleNote(nid) { const n = NOTES.find(x => x.id === nid); if (n) { n.expanded = !n.expanded; saveNotes(); renderNotebook(); } }
+function updateNoteTitle(nid, val) {
+  const n = NOTES.find(x => x.id === nid);
+  if (n) {
+    n.title = val;
+    saveNotes();
+    // Update the header span live without re-rendering (which would reset cursor)
+    const header = document.querySelector(`[data-note-header="${nid}"]`);
+    if (header) header.textContent = val || 'Note';
+  }
+}
+function escHtml(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+
+/* KEYBOARD SHORTCUTS */
+document.addEventListener('keydown', e => {
+  if (currentTab === 'study') {
+    if (e.key === 'ArrowRight') next();
+    else if (e.key === 'ArrowLeft') prev();
+    else if (e.key === ' ') { e.preventDefault(); flip(); }
+    else if (e.key === 'Enter') markLearnt();
+    else if (e.key === 'h' || e.key === 'H') markHard();
+  } else if (currentTab === 'myvocab' && isCustomStudying) {
+    if (e.key === 'ArrowRight') nextCustom();
+    else if (e.key === 'ArrowLeft') prevCustom();
+    else if (e.key === ' ') { e.preventDefault(); flipCustom(); }
+  }
+});
+
+// Init
+id('badge').textContent = ALL.length + ' cards';
+updateMyVocabCount(); render(); updateTabCounts();
+</script>
+</body>
+</html>
