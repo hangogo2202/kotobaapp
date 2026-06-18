@@ -1,0 +1,5234 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>JLPT N3 Vocabulary Study Tool</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
+  <style>
+    :root {
+      --font-sans: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+      /* ── Blue palette (lightest → deepest) ── */
+      --blue-0: #F0F6FF;   /* near-white tint — page background */
+      --blue-1: #D6E8F7;   /* very light blue — secondary backgrounds */
+      --blue-2: #B8D5EE;   /* soft blue — borders, dividers */
+      --blue-3: #8BBDE0;   /* medium-light — progress track, hover bg */
+      --blue-4: #5A9FD0;   /* mid blue — badge bg, muted labels */
+      --blue-5: #2C7EC0;   /* core blue — active tabs, accents */
+      --blue-6: #1056A0;   /* deep blue — primary text on cards, CTAs */
+      --blue-7: #0A3578;   /* navy — headings, kanji, darkest text */
+
+      --color-background-primary: #ffffff;
+      --border-radius-sm: 6px;
+      --border-radius-md: 10px;
+      --border-radius-lg: 16px;
+      
+      --shadow-sm: 0 1px 3px rgba(10,53,120,0.05), 0 1px 2px rgba(10,53,120,0.1);
+      --shadow-md: 0 4px 6px -1px rgba(10,53,120,0.08), 0 2px 4px -1px rgba(10,53,120,0.04);
+      --shadow-lg: 0 10px 15px -3px rgba(10,53,120,0.08), 0 4px 6px -2px rgba(10,53,120,0.04);
+      --transition-base: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    }
+
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: var(--font-sans);
+      background-color: var(--blue-0);
+      color: var(--blue-7);
+      line-height: 1.5;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── App Layout Headers ── */
+    .app-header {
+      background-color: #ffffff;
+      border-bottom: 1px solid var(--blue-2);
+      padding: 1rem 1.5rem;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: var(--shadow-sm);
+    }
+    .header-content {
+      max-width: 1000px;
+      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 1rem;
+    }
+    .logo-area {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+    }
+    .logo-icon {
+      background: linear-gradient(135deg, var(--blue-5), var(--blue-6));
+      color: #ffffff;
+      width: 40px;
+      height: 40px;
+      border-radius: var(--border-radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+      box-shadow: 0 4px 10px rgba(44,126,192,0.25);
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: var(--blue-7);
+      letter-spacing: -0.01em;
+    }
+
+    /* Nav Tabs Navigation */
+    .nav-tabs {
+      display: flex;
+      gap: 0.375rem;
+      background-color: var(--blue-0);
+      padding: 0.375rem;
+      border-radius: var(--border-radius-md);
+      border: 1px solid var(--blue-2);
+    }
+    .tab-btn {
+      background: none;
+      border: none;
+      padding: 0.5rem 1rem;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--blue-4);
+      cursor: pointer;
+      border-radius: var(--border-radius-sm);
+      transition: var(--transition-base);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .tab-btn:hover {
+      color: var(--blue-6);
+      background-color: rgba(44,126,192,0.08);
+    }
+    .tab-btn.active {
+      background-color: #ffffff;
+      color: var(--blue-6);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .main-container {
+      max-width: 1000px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    /* ── Component Cards Visual Styles ── */
+    .card {
+      background-color: #ffffff;
+      border-radius: var(--border-radius-lg);
+      border: 1px solid var(--blue-2);
+      box-shadow: var(--shadow-md);
+      padding: 2rem;
+      margin-bottom: 2rem;
+    }
+    .welcome-card {
+      background: linear-gradient(135deg, #ffffff, var(--blue-0));
+      border-left: 5px solid var(--blue-5);
+    }
+    .welcome-card h2 { margin-top:0; color: var(--blue-7); }
+    
+    .btn-learn {
+      background-color: var(--blue-5);
+      color: #ffffff;
+      border: none;
+      padding: 0.75rem 1.5rem;
+      font-size: 1rem;
+      font-weight: 600;
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      transition: var(--transition-base);
+      box-shadow: 0 4px 12px rgba(44,126,192,0.2);
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    .btn-learn:hover {
+      background-color: var(--blue-6);
+      transform: translateY(-1px);
+      box-shadow: 0 6px 16px rgba(16,86,160,0.3);
+    }
+
+    .grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 1.5rem;
+    }
+    .stat-card {
+      background-color: #ffffff;
+      border: 1px solid var(--blue-2);
+      border-radius: var(--border-radius-md);
+      padding: 1.25rem;
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .stat-icon {
+      width: 48px;
+      height: 48px;
+      border-radius: var(--border-radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 1.5rem;
+    }
+    .stat-icon.blue { background-color: rgba(44,126,192,0.1); color: var(--blue-5); }
+    .stat-icon.green { background-color: rgba(16,185,129,0.1); color: #10B981; }
+    .stat-icon.orange { background-color: rgba(245,158,11,0.1); color: #F59E0B; }
+    .stat-val { font-size: 1.5rem; font-weight: 700; color: var(--blue-7); line-height: 1.2; }
+    .stat-lbl { font-size: 0.85rem; color: var(--blue-4); font-weight: 500; }
+
+    /* ── Flashcard Engine Layout ── */
+    .flashcard-wrapper {
+      perspective: 1000px;
+      max-width: 500px;
+      margin: 2rem auto;
+    }
+    .flashcard {
+      width: 100%;
+      height: 320px;
+      position: relative;
+      transform-style: preserve-3d;
+      transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+    .flashcard.flipped { transform: rotateY(180deg); }
+    .card-face {
+      position: absolute;
+      width: 100%;
+      height: 100%;
+      backface-visibility: hidden;
+      border-radius: var(--border-radius-lg);
+      border: 2px solid var(--blue-2);
+      box-shadow: var(--shadow-lg);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 2rem;
+      text-align: center;
+    }
+    .card-front { background-color: #ffffff; color: var(--blue-7); }
+    .card-back { background-color: var(--blue-0); color: var(--blue-7); transform: rotateY(180deg); border-color: var(--blue-3); }
+    .card-kanji { font-size: 3.5rem; font-weight: 800; margin-bottom: 0.5rem; color: var(--blue-7); }
+    .card-reading { font-size: 1.5rem; color: var(--blue-5); font-weight: 600; margin-bottom: 1.5rem; }
+    .card-meaning { font-size: 1.6rem; font-weight: 700; color: var(--blue-6); margin-bottom: 0.5rem; }
+    .card-pos { font-size: 0.85rem; text-transform: uppercase; background-color: var(--blue-2); color: var(--blue-7); padding: 0.25rem 0.75rem; border-radius: 999px; font-weight: 600; letter-spacing: 0.05em; }
+    .card-hint { position: absolute; bottom: 1rem; font-size: 0.85rem; color: var(--blue-4); display: flex; align-items: center; gap: 0.25rem; }
+    
+    .controls { display: flex; justify-content: center; gap: 1rem; margin-top: 2rem; }
+    .btn-action {
+      background-color: #ffffff;
+      border: 1px solid var(--blue-2);
+      color: var(--blue-6);
+      padding: 0.75rem 1.25rem;
+      font-size: 0.95rem;
+      font-weight: 600;
+      border-radius: var(--border-radius-md);
+      cursor: pointer;
+      transition: var(--transition-base);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      box-shadow: var(--shadow-sm);
+    }
+    .btn-action:hover { border-color: var(--blue-4); background-color: var(--blue-0); color: var(--blue-7); }
+    .btn-action.primary { background-color: var(--blue-5); color: #ffffff; border: none; }
+    .btn-action.primary:hover { background-color: var(--blue-6); }
+    .btn-action.success { color: #10B981; }
+    .btn-action.success:hover { background-color: rgba(16,185,129,0.05); border-color: #10B981; }
+    .btn-action.warning { color: #F59E0B; }
+    .btn-action.warning:hover { background-color: rgba(245,158,11,0.05); border-color: #F59E0B; }
+    
+    .progress-container { max-width: 500px; margin: 1.5rem auto 0 auto; }
+    .progress-bar-track { background-color: var(--blue-2); height: 6px; border-radius: 999px; overflow: hidden; }
+    .progress-bar-fill { background: linear-gradient(90deg, var(--blue-4), var(--blue-5)); height: 100%; width: 0%; transition: width 0.3s ease; }
+    .progress-txt { display: flex; justify-content: space-between; font-size: 0.85rem; color: var(--blue-4); font-weight: 600; margin-top: 0.5rem; }
+
+    /* ── Search & Dictionary ── */
+    .search-wrapper { position: relative; margin-bottom: 2rem; }
+    .search-input {
+      width: 100%;
+      padding: 1rem 1.25rem 1rem 3rem;
+      font-size: 1.05rem;
+      border: 1px solid var(--blue-2);
+      border-radius: var(--border-radius-lg);
+      color: var(--blue-7);
+      background-color: #ffffff;
+      box-shadow: var(--shadow-md);
+      outline: none;
+      transition: var(--transition-base);
+    }
+    .search-input:focus { border-color: var(--blue-5); box-shadow: 0 0 0 4px rgba(44,126,192,0.15); }
+    .search-icon { position: absolute; left: 1.25rem; top: 50%; transform: translateY(-50%); color: var(--blue-4); font-size: 1.25rem; }
+    
+    .vocab-list { display: flex; flex-direction: column; gap: 1rem; }
+    .vocab-item {
+      background-color: #ffffff;
+      border: 1px solid var(--blue-2);
+      border-radius: var(--border-radius-md);
+      padding: 1.25rem;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+      transition: var(--transition-base);
+    }
+    .vocab-item:hover { transform: translateY(-1px); box-shadow: var(--shadow-md); border-color: var(--blue-3); }
+    .vocab-main { display: flex; align-items: baseline; gap: 1rem; flex-wrap: wrap; }
+    .vocab-kanji { font-size: 1.5rem; font-weight: 700; color: var(--blue-7); }
+    .vocab-reading { font-size: 1rem; color: var(--blue-5); font-weight: 600; }
+    .vocab-details { margin-top: 0.25rem; }
+    .vocab-meaning { font-size: 0.95rem; color: var(--blue-6); font-weight: 500; }
+    .vocab-badge { font-size: 0.75rem; background-color: var(--blue-1); color: var(--blue-6); padding: 0.15rem 0.5rem; border-radius: 4px; font-weight: 600; margin-right: 0.5rem; }
+    
+    .btn-save-vocab { background: none; border: 1px solid var(--blue-2); color: var(--blue-4); width: 36px; height: 36px; border-radius: var(--border-radius-sm); display: flex; align-items: center; justify-content: center; cursor: pointer; transition: var(--transition-base); }
+    .btn-save-vocab:hover { color: var(--blue-5); background-color: var(--blue-0); border-color: var(--blue-3); }
+    .btn-save-vocab.saved { color: #ffffff; background-color: var(--blue-5); border-color: var(--blue-5); }
+
+    /* ── Notebook Workspace (Visual Alignment) ── */
+    .notebook-layout { display: grid; grid-template-columns: 260px 1fr; gap: 2rem; }
+    @media(max-width: 768px) { .notebook-layout { grid-template-columns: 1fr; } }
+    
+    .notebook-sidebar { background-color: #ffffff; border: 1px solid var(--blue-2); border-radius: var(--border-radius-lg); padding: 1rem; box-shadow: var(--shadow-sm); height: fit-content; }
+    .sidebar-title { font-size: 0.85rem; font-weight: 700; text-transform: uppercase; color: var(--blue-4); letter-spacing: 0.05em; padding: 0.5rem; margin: 0 0 0.5rem 0; }
+    .notebook-menu { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 0.25rem; }
+    
+    .menu-item-btn { width: 100%; text-align: left; background: none; border: none; padding: 0.75rem; font-size: 0.95rem; font-weight: 600; color: var(--blue-6); cursor: pointer; border-radius: var(--border-radius-sm); display: flex; align-items: center; justify-content: space-between; transition: var(--transition-base); }
+    .menu-item-btn:hover { background-color: var(--blue-0); color: var(--blue-7); }
+    .menu-item-btn.active { background-color: var(--blue-5); color: #ffffff; }
+    .menu-item-btn .badge { font-size: 0.75rem; background-color: var(--blue-1); color: var(--blue-6); padding: 0.15rem 0.4rem; border-radius: 999px; }
+    .menu-item-btn.active .badge { background-color: rgba(255,255,255,0.2); color: #ffffff; }
+    
+    .btn-add-page { width: 100%; margin-top: 0.75rem; background: none; border: 1px dashed var(--blue-3); color: var(--blue-5); padding: 0.6rem; font-size: 0.85rem; font-weight: 600; border-radius: var(--border-radius-sm); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 0.375rem; transition: var(--transition-base); }
+    .btn-add-page:hover { background-color: var(--blue-0); border-style: solid; border-color: var(--blue-5); }
+    
+    .notebook-body { background-color: #ffffff; border: 1px solid var(--blue-2); border-radius: var(--border-radius-lg); padding: 2rem; box-shadow: var(--shadow-md); position: relative; }
+    
+    /* Elegant Title Header Layout (From reference images) */
+    .title-display-container { display: flex; align-items: center; gap: 10px; margin-bottom: 1.5rem; padding-bottom: 0.5rem; border-bottom: 1px solid var(--blue-1); }
+    .title-display-text { font-size: 22px; font-weight: 700; color: var(--blue-7); margin: 0; }
+    .title-edit-btn { background: none; border: none; color: var(--blue-4); cursor: pointer; padding: 4px 8px; border-radius: var(--border-radius-sm); transition: var(--transition-base); display: inline-flex; align-items: center; font-size: 14px; font-weight: 600; gap: 4px; }
+    .title-edit-btn:hover { color: var(--blue-6); background-color: var(--blue-0); }
+    
+    /* Clean Title Input State layout */
+    .title-edit-container { display: flex; align-items: center; gap: 8px; margin-bottom: 1.5rem; width: 100%; }
+    .title-edit-input { flex: 1; font-size: 18px; font-weight: 600; color: var(--blue-7); padding: 6px 12px; border: 2px solid var(--blue-5); border-radius: var(--border-radius-sm); background: #ffffff; outline: none; box-shadow: 0 0 0 3px rgba(44,126,192,0.12); }
+    .title-save-btn { background-color: var(--blue-5); color: white; border: none; padding: 8px 16px; font-weight: 600; border-radius: var(--border-radius-sm); cursor: pointer; transition: var(--transition-base); }
+    .title-save-btn:hover { background-color: var(--blue-6); }
+    .title-cancel-btn { background-color: var(--blue-1); color: var(--blue-6); border: none; padding: 8px 16px; font-weight: 600; border-radius: var(--border-radius-sm); cursor: pointer; transition: var(--transition-base); }
+    .title-cancel-btn:hover { background-color: var(--blue-2); }
+
+    /* Notes Blocks & Stack Content Modules */
+    .notes-stack { display: flex; flex-direction: column; gap: 1rem; margin-top: 1.5rem; }
+    .note-card { border: 1px solid var(--blue-2); border-radius: var(--border-radius-md); overflow: hidden; box-shadow: var(--shadow-sm); background-color: #ffffff; }
+    .note-header { background-color: var(--blue-0); padding: 0.75rem 1rem; display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--blue-2); cursor: pointer; user-select: none; }
+    .note-header-left { display: flex; align-items: center; gap: 0.5rem; font-weight: 600; color: var(--blue-7); }
+    .btn-note-action { background: none; border: none; color: var(--blue-4); cursor: pointer; padding: 0.25rem; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: var(--transition-base); }
+    .btn-note-action:hover { color: #EF4444; background-color: #FEE2E2; }
+    
+    .note-content-area { padding: 1.25rem; }
+    .note-editable-title { border: none; outline: none; font-size: 1.05rem; font-weight: 600; color: var(--blue-7); width: 100%; background: transparent; padding: 0.25rem 0; border-bottom: 1px dashed transparent; margin-bottom: 0.75rem; }
+    .note-editable-title:focus { border-bottom-color: var(--blue-4); background-color: var(--blue-0); padding-left: 4px; border-radius: 2px; }
+    .note-body-editor { min-height: 100px; outline: none; font-size: 0.95rem; color: #334155; line-height: 1.6; }
+    .note-body-editor[data-placeholder]:empty:before { content: attr(data-placeholder); color: #94a3b8; }
+
+    .vocab-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 1rem; margin-bottom: 2rem; border-bottom: 1px solid var(--blue-2); padding-bottom: 1.5rem; }
+    .saved-word-tag { background-color: var(--blue-0); border: 1px solid var(--blue-2); padding: 0.75rem 1rem; border-radius: var(--border-radius-md); display: flex; justify-content: space-between; align-items: center; transition: var(--transition-base); }
+    .saved-word-tag:hover { border-color: var(--blue-4); background-color: #ffffff; }
+    .saved-word-info { display: flex; flex-direction: column; }
+    .saved-word-kanji { font-weight: 700; font-size: 1.1rem; color: var(--blue-7); }
+    .saved-word-reading { font-size: 0.85rem; color: var(--blue-5); font-weight: 500; }
+    .btn-remove-tag { background: none; border: none; color: var(--blue-3); cursor: pointer; padding: 0.2rem; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: var(--transition-base); }
+    .btn-remove-tag:hover { color: #EF4444; background-color: #FEE2E2; }
+    
+    .empty-state { text-align: center; padding: 3rem 1rem; color: var(--blue-4); }
+    .empty-state i { font-size: 3rem; margin-bottom: 1rem; display: block; color: var(--blue-3); }
+    .btn-secondary { background-color: #ffffff; border: 1px solid var(--blue-2); color: var(--blue-6); padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 600; border-radius: var(--border-radius-sm); cursor: pointer; transition: var(--transition-base); display: inline-flex; align-items: center; gap: 0.375rem; }
+    .btn-secondary:hover { background-color: var(--blue-0); border-color: var(--blue-4); }
+  </style>
+</head>
+<body>
+
+  <header class="app-header">
+    <div class="header-content">
+      <div class="logo-area">
+        <div class="logo-icon"><i class="ti ti-book-2"></i></div>
+        <h1>JLPT N3 Vocabulary</h1>
+      </div>
+      <nav class="nav-tabs">
+        <button class="tab-btn active" id="tab-home" onclick="switchTab('home')"><i class="ti ti-smart-home"></i> Home</button>
+        <button class="tab-btn" id="tab-study" onclick="switchTab('study')"><i class="ti ti-cards"></i> Study</button>
+        <button class="tab-btn" id="tab-dict" onclick="switchTab('dict')"><i class="ti ti-search"></i> Dictionary</button>
+        <button class="tab-btn" id="tab-myvocab" onclick="switchTab('myvocab')"><i class="ti ti-notebook"></i> My Vocab</button>
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-container">
+    <div id="view-home" class="tab-view">
+      <div class="card welcome-card">
+        <h2>Mimikara Omoeru N3 Study Stream</h2>
+        <p>Track, learn, and test your vocabulary performance with items directly loaded from your official N3 training sheet entries.</p>
+        <button class="btn-learn" onclick="switchTab('study')">Start Active Flashcards <i class="ti ti-arrow-right"></i></button>
+      </div>
+      <div class="grid-2">
+        <div class="stat-card">
+          <div class="stat-icon blue"><i class="ti ti-cards"></i></div>
+          <div>
+            <div class="stat-val" id="stat-total-cards">0</div>
+            <div class="stat-lbl">Loaded Mimikara Words</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon green"><i class="ti ti-circle-check"></i></div>
+          <div>
+            <div class="stat-val" id="stat-learnt-cards">0</div>
+            <div class="stat-lbl">Mastered Terms</div>
+          </div>
+        </div>
+        <div class="stat-card">
+          <div class="stat-icon orange"><i class="ti ti-bookmark"></i></div>
+          <div>
+            <div class="stat-val" id="stat-saved-words">0</div>
+            <div class="stat-lbl">Pinned in Notebooks</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-study" class="tab-view" style="display:none;">
+      <div class="flashcard-wrapper">
+        <div class="flashcard" id="flashcard-element" onclick="flip()">
+          <div class="card-face card-front">
+            <div class="card-kanji" id="fc-kanji">--</div>
+            <div class="card-reading" id="fc-reading">--</div>
+            <div class="card-hint"><i class="ti ti-rotate"></i> Click block to reveal definition</div>
+          </div>
+          <div class="card-face card-back">
+            <div class="card-meaning" id="fc-meaning">--</div>
+            <div class="card-pos" id="fc-pos">--</div>
+            <div class="card-hint"><i class="ti ti-rotate"></i> Click block to reveal term</div>
+          </div>
+        </div>
+        <div class="progress-container">
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" id="study-progress-fill"></div>
+          </div>
+          <div class="progress-txt">
+            <span id="study-progress-lbl">Card 0 of 0</span>
+            <span id="study-percent-lbl">0% Mastered</span>
+          </div>
+        </div>
+        <div class="controls">
+          <button class="btn-action" onclick="prev()"><i class="ti ti-chevron-left"></i> Back</button>
+          <button class="btn-action warning" onclick="markHard()"><i class="ti ti-alert-circle"></i> Review Later</button>
+          <button class="btn-action success" onclick="markLearnt()"><i class="ti ti-circle-check"></i> Mastered</button>
+          <button class="btn-action primary" onclick="next()">Next <i class="ti ti-chevron-right"></i></button>
+        </div>
+      </div>
+    </div>
+
+    <div id="view-dict" class="tab-view" style="display:none;">
+      <div class="search-wrapper">
+        <i class="ti ti-search search-icon"></i>
+        <input type="text" id="dict-search" class="search-input" placeholder="Type to search entries by Kanji, Hiragana, or Meaning..." oninput="searchDict()">
+      </div>
+      <div class="vocab-list" id="dict-results-container"></div>
+    </div>
+
+    <div id="view-myvocab" class="tab-view" style="display:none;">
+      <div class="notebook-layout">
+        <aside class="notebook-sidebar">
+          <h4 class="sidebar-title">Your Notebooks</h4>
+          <ul class="notebook-menu" id="notebook-pages-list"></ul>
+          <button class="btn-add-page" onclick="addNotebookPage()"><i class="ti ti-plus"></i> New Canvas</button>
+        </aside>
+
+        <section class="notebook-body">
+          <div id="myvocab-empty-state" class="empty-state">
+            <i class="ti ti-notebook"></i>
+            <p>Select or create a workspace canvas in the sidebar view layout.</p>
+          </div>
+          
+          <div id="myvocab-single-page-view" style="display:none;">
+            <div id="notebook-interactive-title-container"></div>
+            
+            <h4 class="sidebar-title" style="margin-top:1.5rem; margin-bottom:0.5rem; padding-left:0;">Bookmarked Terms</h4>
+            <div class="vocab-grid" id="page-words-grid"></div>
+            
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:1.5rem;">
+              <h4 class="sidebar-title" style="margin:0; padding-left:0;">Study Log & Details</h4>
+              <button class="btn-secondary" onclick="addNote()"><i class="ti ti-plus"></i> Add Note Block</button>
+            </div>
+            <div class="notes-stack" id="page-notes-container"></div>
+          </div>
+        </section>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    /* ── AUTHENTIC MIMIKARA N3 VOCABULARY DATASET SEED ── */
+    const VOCAB = [
+  {
+    "id": 1,
+    "kanji": "男性",
+    "reading": "だんせい",
+    "meaning": "đàn ông",
+    "pos": "名詞"
+  },
+  {
+    "id": 2,
+    "kanji": "女性",
+    "reading": "じょせい",
+    "meaning": "phụ nữ",
+    "pos": "名詞"
+  },
+  {
+    "id": 3,
+    "kanji": "高齢",
+    "reading": "こうれい",
+    "meaning": "cao tuổi",
+    "pos": "名詞"
+  },
+  {
+    "id": 4,
+    "kanji": "年上",
+    "reading": "としうえ",
+    "meaning": "hơn tuổi",
+    "pos": "名詞"
+  },
+  {
+    "id": 5,
+    "kanji": "目上",
+    "reading": "めうえ",
+    "meaning": "bề trên",
+    "pos": "名詞"
+  },
+  {
+    "id": 6,
+    "kanji": "先輩",
+    "reading": "せんぱい",
+    "meaning": "tiền bối",
+    "pos": "名詞"
+  },
+  {
+    "id": 7,
+    "kanji": "後輩",
+    "reading": "こうはい",
+    "meaning": "hậu bối",
+    "pos": "名詞"
+  },
+  {
+    "id": 8,
+    "kanji": "上司",
+    "reading": "じょうし",
+    "meaning": "cấp trên",
+    "pos": "名詞"
+  },
+  {
+    "id": 9,
+    "kanji": "相手",
+    "reading": "あいて",
+    "meaning": "người đối diện",
+    "pos": "名詞"
+  },
+  {
+    "id": 10,
+    "kanji": "知り合い",
+    "reading": "しりあい",
+    "meaning": "người quen",
+    "pos": "名詞"
+  },
+  {
+    "id": 11,
+    "kanji": "友人",
+    "reading": "ゆうじん",
+    "meaning": "bạn bè",
+    "pos": "名詞"
+  },
+  {
+    "id": 12,
+    "kanji": "仲",
+    "reading": "なか",
+    "meaning": "mối quan hệ",
+    "pos": "名詞"
+  },
+  {
+    "id": 13,
+    "kanji": "生年月日",
+    "reading": "せいねんがっぴ",
+    "meaning": "ngày tháng năm sinh",
+    "pos": "名詞"
+  },
+  {
+    "id": 14,
+    "kanji": "誕生",
+    "reading": "たんじょう",
+    "meaning": "ra đời",
+    "pos": "名詞"
+  },
+  {
+    "id": 15,
+    "kanji": "年",
+    "reading": "とし",
+    "meaning": "năm",
+    "pos": "名詞"
+  },
+  {
+    "id": 16,
+    "kanji": "出身",
+    "reading": "しゅっしん",
+    "meaning": "quê quán",
+    "pos": "名詞"
+  },
+  {
+    "id": 17,
+    "kanji": "故郷",
+    "reading": "こきょう",
+    "meaning": "cố hương",
+    "pos": "名詞"
+  },
+  {
+    "id": 18,
+    "kanji": "成長",
+    "reading": "せいちょう",
+    "meaning": "trưởng thành",
+    "pos": "名詞"
+  },
+  {
+    "id": 19,
+    "kanji": "成人",
+    "reading": "せいじん",
+    "meaning": "người trưởng thành",
+    "pos": "名詞"
+  },
+  {
+    "id": 20,
+    "kanji": "合格",
+    "reading": "ごうかく",
+    "meaning": "đỗ đại học",
+    "pos": "名詞"
+  },
+  {
+    "id": 21,
+    "kanji": "進学",
+    "reading": "しんがく",
+    "meaning": "vào đại học",
+    "pos": "名詞"
+  },
+  {
+    "id": 22,
+    "kanji": "退学",
+    "reading": "たいがく",
+    "meaning": "bỏ học",
+    "pos": "名詞"
+  },
+  {
+    "id": 23,
+    "kanji": "就職",
+    "reading": "しゅうしょく",
+    "meaning": "có việc làm",
+    "pos": "名詞"
+  },
+  {
+    "id": 24,
+    "kanji": "退職",
+    "reading": "たいしょく",
+    "meaning": "nghỉ việc",
+    "pos": "名詞"
+  },
+  {
+    "id": 25,
+    "kanji": "失業",
+    "reading": "しつぎょう",
+    "meaning": "thất nghiệp",
+    "pos": "名詞"
+  },
+  {
+    "id": 26,
+    "kanji": "残業",
+    "reading": "ざんぎょう",
+    "meaning": "làm thêm",
+    "pos": "名詞"
+  },
+  {
+    "id": 27,
+    "kanji": "生活",
+    "reading": "せいかつ",
+    "meaning": "cuộc sống",
+    "pos": "名詞"
+  },
+  {
+    "id": 28,
+    "kanji": "通勤",
+    "reading": "つうきん",
+    "meaning": "đi làm",
+    "pos": "名詞"
+  },
+  {
+    "id": 29,
+    "kanji": "学歴",
+    "reading": "がくれき",
+    "meaning": "bằng cấp",
+    "pos": "名詞"
+  },
+  {
+    "id": 30,
+    "kanji": "給料",
+    "reading": "きゅうりょう",
+    "meaning": "tiền lương",
+    "pos": "名詞"
+  },
+  {
+    "id": 31,
+    "kanji": "面接",
+    "reading": "めんせつ",
+    "meaning": "phỏng vấn",
+    "pos": "名詞"
+  },
+  {
+    "id": 32,
+    "kanji": "休憩",
+    "reading": "きゅうけい",
+    "meaning": "nghỉ ngơi",
+    "pos": "名詞"
+  },
+  {
+    "id": 33,
+    "kanji": "観光",
+    "reading": "かんこう",
+    "meaning": "tham quan",
+    "pos": "名詞"
+  },
+  {
+    "id": 34,
+    "kanji": "帰国",
+    "reading": "きこく",
+    "meaning": "về nước",
+    "pos": "名詞"
+  },
+  {
+    "id": 35,
+    "kanji": "帰省",
+    "reading": "きせい",
+    "meaning": "về quê",
+    "pos": "名詞"
+  },
+  {
+    "id": 36,
+    "kanji": "帰宅",
+    "reading": "きたく",
+    "meaning": "về nhà",
+    "pos": "名詞"
+  },
+  {
+    "id": 37,
+    "kanji": "参加",
+    "reading": "さんか",
+    "meaning": "tham gia",
+    "pos": "名詞"
+  },
+  {
+    "id": 38,
+    "kanji": "出席",
+    "reading": "しゅっせき",
+    "meaning": "có mặt",
+    "pos": "名詞"
+  },
+  {
+    "id": 39,
+    "kanji": "欠席",
+    "reading": "けっせき",
+    "meaning": "vắng mặt",
+    "pos": "名詞"
+  },
+  {
+    "id": 40,
+    "kanji": "遅刻",
+    "reading": "ちこく",
+    "meaning": "đến muộn",
+    "pos": "名詞"
+  },
+  {
+    "id": 41,
+    "kanji": "化粧",
+    "reading": "けしょう",
+    "meaning": "trang điểm",
+    "pos": "名詞"
+  },
+  {
+    "id": 42,
+    "kanji": "計算",
+    "reading": "けいさん",
+    "meaning": "tính toán",
+    "pos": "名詞"
+  },
+  {
+    "id": 43,
+    "kanji": "計画",
+    "reading": "けいかく",
+    "meaning": "kế hoạch",
+    "pos": "名詞"
+  },
+  {
+    "id": 44,
+    "kanji": "成功",
+    "reading": "せいこう",
+    "meaning": "thành công",
+    "pos": "名詞"
+  },
+  {
+    "id": 45,
+    "kanji": "失敗",
+    "reading": "しっぱい",
+    "meaning": "thất bại",
+    "pos": "名詞"
+  },
+  {
+    "id": 46,
+    "kanji": "準備",
+    "reading": "じゅんび",
+    "meaning": "chuẩn bị",
+    "pos": "名詞"
+  },
+  {
+    "id": 47,
+    "kanji": "整理",
+    "reading": "せいり",
+    "meaning": "chỉnh sửa",
+    "pos": "名詞"
+  },
+  {
+    "id": 48,
+    "kanji": "注文",
+    "reading": "ちゅうもん",
+    "meaning": "đặt hàng",
+    "pos": "名詞"
+  },
+  {
+    "id": 49,
+    "kanji": "貯金",
+    "reading": "ちょきん",
+    "meaning": "tiết kiệm",
+    "pos": "名詞"
+  },
+  {
+    "id": 50,
+    "kanji": "徹夜",
+    "reading": "てつや",
+    "meaning": "thức xuyên đêm",
+    "pos": "名詞"
+  },
+  {
+    "id": 51,
+    "kanji": "引っ越し",
+    "reading": "ひっこし",
+    "meaning": "chuyển nhà",
+    "pos": "名詞"
+  },
+  {
+    "id": 52,
+    "kanji": "身長",
+    "reading": "しんちょう",
+    "meaning": "chiều cao",
+    "pos": "名詞"
+  },
+  {
+    "id": 53,
+    "kanji": "体重",
+    "reading": "たいじゅう",
+    "meaning": "cân nặng",
+    "pos": "名詞"
+  },
+  {
+    "id": 54,
+    "kanji": "けが",
+    "reading": "けが",
+    "meaning": "vết thương",
+    "pos": "名詞"
+  },
+  {
+    "id": 55,
+    "kanji": "会",
+    "reading": "かい",
+    "meaning": "hội, tiệc",
+    "pos": "名詞"
+  },
+  {
+    "id": 56,
+    "kanji": "趣味",
+    "reading": "しゅみ",
+    "meaning": "sở thích",
+    "pos": "名詞"
+  },
+  {
+    "id": 57,
+    "kanji": "興味",
+    "reading": "きょうみ",
+    "meaning": "hứng thú",
+    "pos": "名詞"
+  },
+  {
+    "id": 58,
+    "kanji": "思い出",
+    "reading": "おもいで",
+    "meaning": "nhớ lại",
+    "pos": "名詞"
+  },
+  {
+    "id": 59,
+    "kanji": "冗談",
+    "reading": "じょうだん",
+    "meaning": "đùa cợt",
+    "pos": "名詞"
+  },
+  {
+    "id": 60,
+    "kanji": "目的",
+    "reading": "もくてき",
+    "meaning": "mục đích",
+    "pos": "名詞"
+  },
+  {
+    "id": 61,
+    "kanji": "約束",
+    "reading": "やくそく",
+    "meaning": "lời hứa",
+    "pos": ""
+  },
+  {
+    "id": 62,
+    "kanji": "おしゃべり",
+    "reading": "おしゃべり",
+    "meaning": "nói chuyện riêng",
+    "pos": ""
+  },
+  {
+    "id": 63,
+    "kanji": "遠慮",
+    "reading": "えんりょ",
+    "meaning": "ngại ngần",
+    "pos": ""
+  },
+  {
+    "id": 64,
+    "kanji": "我慢",
+    "reading": "がまん",
+    "meaning": "chịu đựng",
+    "pos": ""
+  },
+  {
+    "id": 65,
+    "kanji": "迷惑",
+    "reading": "めわく",
+    "meaning": "làm phiền",
+    "pos": ""
+  },
+  {
+    "id": 66,
+    "kanji": "希望",
+    "reading": "きぼう",
+    "meaning": "hi vọng",
+    "pos": ""
+  },
+  {
+    "id": 67,
+    "kanji": "夢",
+    "reading": "ゆめ",
+    "meaning": "giấc mơ",
+    "pos": ""
+  },
+  {
+    "id": 68,
+    "kanji": "賛成",
+    "reading": "さんせい",
+    "meaning": "đồng ý",
+    "pos": ""
+  },
+  {
+    "id": 69,
+    "kanji": "反対",
+    "reading": "はんたい",
+    "meaning": "đối lập",
+    "pos": ""
+  },
+  {
+    "id": 70,
+    "kanji": "想像",
+    "reading": "そうぞう",
+    "meaning": "tưởng tượng",
+    "pos": ""
+  },
+  {
+    "id": 71,
+    "kanji": "努力",
+    "reading": "どりょく",
+    "meaning": "nỗ lực",
+    "pos": ""
+  },
+  {
+    "id": 72,
+    "kanji": "太陽",
+    "reading": "たいよう",
+    "meaning": "mặt trời",
+    "pos": ""
+  },
+  {
+    "id": 73,
+    "kanji": "地球",
+    "reading": "ちきゅう",
+    "meaning": "trái đất",
+    "pos": ""
+  },
+  {
+    "id": 74,
+    "kanji": "温度",
+    "reading": "おんど",
+    "meaning": "nhiệt độ",
+    "pos": ""
+  },
+  {
+    "id": 75,
+    "kanji": "湿度",
+    "reading": "しつど",
+    "meaning": "độ ẩm",
+    "pos": ""
+  },
+  {
+    "id": 76,
+    "kanji": "湿気",
+    "reading": "しっけ",
+    "meaning": "hơi ẩm",
+    "pos": ""
+  },
+  {
+    "id": 77,
+    "kanji": "梅雨",
+    "reading": "つゆ",
+    "meaning": "mùa mưa",
+    "pos": ""
+  },
+  {
+    "id": 78,
+    "kanji": "かび",
+    "reading": "かび",
+    "meaning": "nấm mốc",
+    "pos": ""
+  },
+  {
+    "id": 79,
+    "kanji": "暖房",
+    "reading": "だんぼう",
+    "meaning": "điều hòa ấm",
+    "pos": ""
+  },
+  {
+    "id": 80,
+    "kanji": "皮",
+    "reading": "かわ",
+    "meaning": "da",
+    "pos": ""
+  },
+  {
+    "id": 81,
+    "kanji": "缶",
+    "reading": "かん",
+    "meaning": "đồ hộp",
+    "pos": ""
+  },
+  {
+    "id": 82,
+    "kanji": "画面",
+    "reading": "がめん",
+    "meaning": "màn hình",
+    "pos": ""
+  },
+  {
+    "id": 83,
+    "kanji": "番組",
+    "reading": "ばんぐみ",
+    "meaning": "chương trình",
+    "pos": ""
+  },
+  {
+    "id": 84,
+    "kanji": "記事",
+    "reading": "きじ",
+    "meaning": "ký sự",
+    "pos": ""
+  },
+  {
+    "id": 85,
+    "kanji": "近所",
+    "reading": "きんじょ",
+    "meaning": "xung quanh",
+    "pos": ""
+  },
+  {
+    "id": 86,
+    "kanji": "警察",
+    "reading": "けいさつ",
+    "meaning": "cảnh sát",
+    "pos": ""
+  },
+  {
+    "id": 87,
+    "kanji": "犯人",
+    "reading": "はんにん",
+    "meaning": "tội phạm",
+    "pos": ""
+  },
+  {
+    "id": 88,
+    "kanji": "小銭",
+    "reading": "こぜに",
+    "meaning": "tiền lẻ",
+    "pos": ""
+  },
+  {
+    "id": 89,
+    "kanji": "ごちそう",
+    "reading": "ごちそう",
+    "meaning": "chiêu đãi",
+    "pos": ""
+  },
+  {
+    "id": 90,
+    "kanji": "作者",
+    "reading": "作者",
+    "meaning": "tác giả",
+    "pos": ""
+  },
+  {
+    "id": 91,
+    "kanji": "作品",
+    "reading": "さくひん",
+    "meaning": "tác phẩm",
+    "pos": ""
+  },
+  {
+    "id": 92,
+    "kanji": "制服",
+    "reading": "せいふく",
+    "meaning": "đồng phục",
+    "pos": ""
+  },
+  {
+    "id": 93,
+    "kanji": "洗剤",
+    "reading": "せんざい",
+    "meaning": "bột giặt",
+    "pos": ""
+  },
+  {
+    "id": 94,
+    "kanji": "底",
+    "reading": "そこ",
+    "meaning": "đáy",
+    "pos": ""
+  },
+  {
+    "id": 95,
+    "kanji": "地下",
+    "reading": "ちか",
+    "meaning": "ngầm",
+    "pos": ""
+  },
+  {
+    "id": 96,
+    "kanji": "寺",
+    "reading": "てら",
+    "meaning": "chùa",
+    "pos": ""
+  },
+  {
+    "id": 97,
+    "kanji": "道路",
+    "reading": "どうろ",
+    "meaning": "đường",
+    "pos": ""
+  },
+  {
+    "id": 98,
+    "kanji": "坂",
+    "reading": "さか",
+    "meaning": "dốc",
+    "pos": ""
+  },
+  {
+    "id": 99,
+    "kanji": "煙",
+    "reading": "けむり",
+    "meaning": "khói",
+    "pos": ""
+  },
+  {
+    "id": 100,
+    "kanji": "灰",
+    "reading": "はい",
+    "meaning": "tàn",
+    "pos": ""
+  },
+  {
+    "id": 101,
+    "kanji": "判",
+    "reading": "はん",
+    "meaning": "con dấu",
+    "pos": ""
+  },
+  {
+    "id": 102,
+    "kanji": "名刺",
+    "reading": "めいし",
+    "meaning": "danh thiếp",
+    "pos": ""
+  },
+  {
+    "id": 103,
+    "kanji": "免許",
+    "reading": "めんきょ",
+    "meaning": "giấy phép",
+    "pos": ""
+  },
+  {
+    "id": 104,
+    "kanji": "多く",
+    "reading": "おおく",
+    "meaning": "nhiều",
+    "pos": ""
+  },
+  {
+    "id": 105,
+    "kanji": "前半",
+    "reading": "ぜんはん",
+    "meaning": "phần đầu",
+    "pos": ""
+  },
+  {
+    "id": 106,
+    "kanji": "後半",
+    "reading": "こうはん",
+    "meaning": "phần cuối",
+    "pos": ""
+  },
+  {
+    "id": 107,
+    "kanji": "最高",
+    "reading": "さいこう",
+    "meaning": "cao nhất",
+    "pos": ""
+  },
+  {
+    "id": 108,
+    "kanji": "最低",
+    "reading": "さいてい",
+    "meaning": "thấp nhất",
+    "pos": ""
+  },
+  {
+    "id": 109,
+    "kanji": "最初",
+    "reading": "さいしょ",
+    "meaning": "đầu tiên",
+    "pos": ""
+  },
+  {
+    "id": 110,
+    "kanji": "最後",
+    "reading": "さいご",
+    "meaning": "cuối cùng",
+    "pos": ""
+  },
+  {
+    "id": 111,
+    "kanji": "自動",
+    "reading": "じどう",
+    "meaning": "tự động",
+    "pos": ""
+  },
+  {
+    "id": 112,
+    "kanji": "種類",
+    "reading": "しゅるい",
+    "meaning": "loại",
+    "pos": ""
+  },
+  {
+    "id": 113,
+    "kanji": "性格",
+    "reading": "せいかく",
+    "meaning": "tính cách",
+    "pos": ""
+  },
+  {
+    "id": 114,
+    "kanji": "性質",
+    "reading": "せいしつ",
+    "meaning": "tính chất",
+    "pos": ""
+  },
+  {
+    "id": 115,
+    "kanji": "順番",
+    "reading": "じゅんばん",
+    "meaning": "thứ tự",
+    "pos": ""
+  },
+  {
+    "id": 116,
+    "kanji": "番",
+    "reading": "ばん",
+    "meaning": "lượt",
+    "pos": ""
+  },
+  {
+    "id": 117,
+    "kanji": "方法",
+    "reading": "ほうほう",
+    "meaning": "phương pháp",
+    "pos": ""
+  },
+  {
+    "id": 118,
+    "kanji": "製品",
+    "reading": "せいひん",
+    "meaning": "sản phẩm",
+    "pos": ""
+  },
+  {
+    "id": 119,
+    "kanji": "値上がり",
+    "reading": "ねあがり",
+    "meaning": "tăng giá",
+    "pos": ""
+  },
+  {
+    "id": 120,
+    "kanji": "生",
+    "reading": "なま",
+    "meaning": "tươi",
+    "pos": ""
+  },
+  {
+    "id": 121,
+    "kanji": "渇く",
+    "reading": "かわく",
+    "meaning": "khát",
+    "pos": "動詞"
+  },
+  {
+    "id": 122,
+    "kanji": "嗅ぐ",
+    "reading": "かぐ",
+    "meaning": "ngửi",
+    "pos": "動詞"
+  },
+  {
+    "id": 123,
+    "kanji": "叩く",
+    "reading": "たたく",
+    "meaning": "đánh, vỗ",
+    "pos": "動詞"
+  },
+  {
+    "id": 124,
+    "kanji": "殴る",
+    "reading": "なぐる",
+    "meaning": "đấm",
+    "pos": "動詞"
+  },
+  {
+    "id": 125,
+    "kanji": "ける",
+    "reading": "ける",
+    "meaning": "đá",
+    "pos": "動詞"
+  },
+  {
+    "id": 126,
+    "kanji": "抱く",
+    "reading": "だく",
+    "meaning": "ôm",
+    "pos": "動詞"
+  },
+  {
+    "id": 127,
+    "kanji": "倒れる",
+    "reading": "たおれる",
+    "meaning": "đổ",
+    "pos": "動詞"
+  },
+  {
+    "id": 128,
+    "kanji": "倒す",
+    "reading": "たおす",
+    "meaning": "làm đổ",
+    "pos": "動詞"
+  },
+  {
+    "id": 129,
+    "kanji": "起きる",
+    "reading": "おきる",
+    "meaning": "thức dậy",
+    "pos": "動詞"
+  },
+  {
+    "id": 130,
+    "kanji": "起こす",
+    "reading": "おこす",
+    "meaning": "đánh thức",
+    "pos": "動詞"
+  },
+  {
+    "id": 131,
+    "kanji": "尋ねる",
+    "reading": "たずねる",
+    "meaning": "hỏi",
+    "pos": "動詞"
+  },
+  {
+    "id": 132,
+    "kanji": "呼ぶ",
+    "reading": "よぶ",
+    "meaning": "gọi",
+    "pos": "動詞"
+  },
+  {
+    "id": 133,
+    "kanji": "叫ぶ",
+    "reading": "さけぶ",
+    "meaning": "gào to",
+    "pos": "動詞"
+  },
+  {
+    "id": 134,
+    "kanji": "黙る",
+    "reading": "だまる",
+    "meaning": "im lặng",
+    "pos": "動詞"
+  },
+  {
+    "id": 135,
+    "kanji": "飼う",
+    "reading": "かう",
+    "meaning": "nuôi",
+    "pos": "動詞"
+  },
+  {
+    "id": 136,
+    "kanji": "数える",
+    "reading": "かぞえる",
+    "meaning": "đếm",
+    "pos": "動詞"
+  },
+  {
+    "id": 137,
+    "kanji": "乾く",
+    "reading": "かわく",
+    "meaning": "khô",
+    "pos": "動詞"
+  },
+  {
+    "id": 138,
+    "kanji": "乾かす",
+    "reading": "かわかす",
+    "meaning": "làm khô",
+    "pos": "動詞"
+  },
+  {
+    "id": 139,
+    "kanji": "畳む",
+    "reading": "たたむ",
+    "meaning": "gấp",
+    "pos": "動詞"
+  },
+  {
+    "id": 140,
+    "kanji": "誘う",
+    "reading": "さそう",
+    "meaning": "mời, rủ",
+    "pos": "動詞"
+  },
+  {
+    "id": 141,
+    "kanji": "おごる",
+    "reading": "おごる",
+    "meaning": "chiêu đãi",
+    "pos": "動詞"
+  },
+  {
+    "id": 142,
+    "kanji": "預かる",
+    "reading": "あずかる",
+    "meaning": "chăm sóc",
+    "pos": "動詞"
+  },
+  {
+    "id": 143,
+    "kanji": "預ける",
+    "reading": "あずける",
+    "meaning": "gửi",
+    "pos": "動詞"
+  },
+  {
+    "id": 144,
+    "kanji": "決まる",
+    "reading": "きまる",
+    "meaning": "được quyết định",
+    "pos": "動詞"
+  },
+  {
+    "id": 145,
+    "kanji": "決める",
+    "reading": "きめる",
+    "meaning": "quyết định",
+    "pos": "動詞"
+  },
+  {
+    "id": 146,
+    "kanji": "写る",
+    "reading": "うつる",
+    "meaning": "chụp được",
+    "pos": "動詞"
+  },
+  {
+    "id": 147,
+    "kanji": "写す",
+    "reading": "うつす",
+    "meaning": "chụp",
+    "pos": "動詞"
+  },
+  {
+    "id": 148,
+    "kanji": "思い出す",
+    "reading": "おもいだす",
+    "meaning": "nhớ lại",
+    "pos": "動詞"
+  },
+  {
+    "id": 149,
+    "kanji": "教わる",
+    "reading": "おそわる",
+    "meaning": "được dạy",
+    "pos": "動詞"
+  },
+  {
+    "id": 150,
+    "kanji": "申し込む",
+    "reading": "もうしこむ",
+    "meaning": "đăng ký",
+    "pos": "動詞"
+  },
+  {
+    "id": 151,
+    "kanji": "断る",
+    "reading": "ことわる",
+    "meaning": "từ chối",
+    "pos": "動詞"
+  },
+  {
+    "id": 152,
+    "kanji": "見つかる",
+    "reading": "みつかる",
+    "meaning": "được tìm thấy",
+    "pos": "動詞"
+  },
+  {
+    "id": 153,
+    "kanji": "見つける",
+    "reading": "みつける",
+    "meaning": "tìm thấy",
+    "pos": "動詞"
+  },
+  {
+    "id": 154,
+    "kanji": "捕まる",
+    "reading": "つかまる",
+    "meaning": "bị bắt",
+    "pos": "動詞"
+  },
+  {
+    "id": 155,
+    "kanji": "捕まえる",
+    "reading": "つかまえる",
+    "meaning": "bắt",
+    "pos": "動詞"
+  },
+  {
+    "id": 156,
+    "kanji": "乗る",
+    "reading": "のる",
+    "meaning": "leo lên",
+    "pos": "動詞"
+  },
+  {
+    "id": 157,
+    "kanji": "乗せる",
+    "reading": "のせる",
+    "meaning": "cho lên",
+    "pos": "動詞"
+  },
+  {
+    "id": 158,
+    "kanji": "降りる",
+    "reading": "おりる",
+    "meaning": "xuống",
+    "pos": "動詞"
+  },
+  {
+    "id": 159,
+    "kanji": "降ろす",
+    "reading": "おろす",
+    "meaning": "cho xuống",
+    "pos": "動詞"
+  },
+  {
+    "id": 160,
+    "kanji": "直る",
+    "reading": "なおる",
+    "meaning": "được sửa",
+    "pos": "動詞"
+  },
+  {
+    "id": 161,
+    "kanji": "直す",
+    "reading": "なおす",
+    "meaning": "sửa",
+    "pos": "動詞"
+  },
+  {
+    "id": 162,
+    "kanji": "治る",
+    "reading": "なおる",
+    "meaning": "hồi phục",
+    "pos": "動詞"
+  },
+  {
+    "id": 163,
+    "kanji": "治す",
+    "reading": "なおす",
+    "meaning": "cứu chữa",
+    "pos": "動詞"
+  },
+  {
+    "id": 164,
+    "kanji": "亡くなる",
+    "reading": "なくなる",
+    "meaning": "chết",
+    "pos": "動詞"
+  },
+  {
+    "id": 165,
+    "kanji": "亡くす",
+    "reading": "なくす",
+    "meaning": "mất",
+    "pos": "動詞"
+  },
+  {
+    "id": 166,
+    "kanji": "生まれる",
+    "reading": "うまれる",
+    "meaning": "được sinh ra",
+    "pos": "動詞"
+  },
+  {
+    "id": 167,
+    "kanji": "生む",
+    "reading": "うむ",
+    "meaning": "sinh",
+    "pos": "動詞"
+  },
+  {
+    "id": 168,
+    "kanji": "出会う",
+    "reading": "であう",
+    "meaning": "gặp (ngẫu nhiên)",
+    "pos": "動詞"
+  },
+  {
+    "id": 169,
+    "kanji": "訪ねる",
+    "reading": "たずねる",
+    "meaning": "thăm",
+    "pos": "動詞"
+  },
+  {
+    "id": 170,
+    "kanji": "付き合う",
+    "reading": "つきあう",
+    "meaning": "hẹn hò, giao tiếp",
+    "pos": "動詞"
+  },
+  {
+    "id": 171,
+    "kanji": "効く",
+    "reading": "きく",
+    "meaning": "có hiệu quả",
+    "pos": ""
+  },
+  {
+    "id": 172,
+    "kanji": "はやる",
+    "reading": "はやる",
+    "meaning": "phổ biến",
+    "pos": ""
+  },
+  {
+    "id": 173,
+    "kanji": "経つ",
+    "reading": "たつ",
+    "meaning": "qua",
+    "pos": ""
+  },
+  {
+    "id": 174,
+    "kanji": "間に合う",
+    "reading": "まにあう",
+    "meaning": "làm cho kịp giờ",
+    "pos": ""
+  },
+  {
+    "id": 175,
+    "kanji": "間に合わせる",
+    "reading": "まにあわせる",
+    "meaning": "kịp giờ",
+    "pos": ""
+  },
+  {
+    "id": 176,
+    "kanji": "通う",
+    "reading": "かよう",
+    "meaning": "đi làm, học",
+    "pos": ""
+  },
+  {
+    "id": 177,
+    "kanji": "込む",
+    "reading": "こむ",
+    "meaning": "đông",
+    "pos": ""
+  },
+  {
+    "id": 178,
+    "kanji": "すれ違う",
+    "reading": "すれちあう",
+    "meaning": "vượt, lướt",
+    "pos": ""
+  },
+  {
+    "id": 179,
+    "kanji": "掛かる",
+    "reading": "かかる",
+    "meaning": "được bao phủ",
+    "pos": ""
+  },
+  {
+    "id": 180,
+    "kanji": "掛ける",
+    "reading": "かける",
+    "meaning": "bao phủ",
+    "pos": ""
+  },
+  {
+    "id": 181,
+    "kanji": "動く",
+    "reading": "うごく",
+    "meaning": "hoạt động",
+    "pos": ""
+  },
+  {
+    "id": 182,
+    "kanji": "動かす",
+    "reading": "うごかす",
+    "meaning": "di chuyển",
+    "pos": ""
+  },
+  {
+    "id": 183,
+    "kanji": "離れる",
+    "reading": "はなれる",
+    "meaning": "tránh xa",
+    "pos": ""
+  },
+  {
+    "id": 184,
+    "kanji": "離す",
+    "reading": "はなす",
+    "meaning": "tách ra",
+    "pos": ""
+  },
+  {
+    "id": 185,
+    "kanji": "ぶつかる",
+    "reading": "ぶつかる",
+    "meaning": "bị đâm",
+    "pos": ""
+  },
+  {
+    "id": 186,
+    "kanji": "ぶつける",
+    "reading": "ぶつける",
+    "meaning": "đâm",
+    "pos": ""
+  },
+  {
+    "id": 187,
+    "kanji": "こぼれる",
+    "reading": "こぼれる",
+    "meaning": "bị tràn",
+    "pos": ""
+  },
+  {
+    "id": 188,
+    "kanji": "こぼす",
+    "reading": "こぼす",
+    "meaning": "tràn",
+    "pos": ""
+  },
+  {
+    "id": 189,
+    "kanji": "ふく",
+    "reading": "ふく",
+    "meaning": "lau",
+    "pos": ""
+  },
+  {
+    "id": 190,
+    "kanji": "片付く",
+    "reading": "かたづく",
+    "meaning": "được dọn dẹp",
+    "pos": ""
+  },
+  {
+    "id": 191,
+    "kanji": "片付ける",
+    "reading": "かたづける",
+    "meaning": "dọn dẹp",
+    "pos": ""
+  },
+  {
+    "id": 192,
+    "kanji": "包む",
+    "reading": "つつむ",
+    "meaning": "bọc",
+    "pos": ""
+  },
+  {
+    "id": 193,
+    "kanji": "張る",
+    "reading": "はる",
+    "meaning": "dán",
+    "pos": ""
+  },
+  {
+    "id": 194,
+    "kanji": "無くなる",
+    "reading": "なくなる",
+    "meaning": "bị mất",
+    "pos": ""
+  },
+  {
+    "id": 195,
+    "kanji": "無くす",
+    "reading": "なくす",
+    "meaning": "mất",
+    "pos": ""
+  },
+  {
+    "id": 196,
+    "kanji": "足りる",
+    "reading": "たりる",
+    "meaning": "đủ",
+    "pos": ""
+  },
+  {
+    "id": 197,
+    "kanji": "残る",
+    "reading": "のこる",
+    "meaning": "bị thừa",
+    "pos": ""
+  },
+  {
+    "id": 198,
+    "kanji": "残す",
+    "reading": "のこす",
+    "meaning": "thừa",
+    "pos": ""
+  },
+  {
+    "id": 199,
+    "kanji": "腐る",
+    "reading": "くさる",
+    "meaning": "thối",
+    "pos": ""
+  },
+  {
+    "id": 200,
+    "kanji": "むける",
+    "reading": "むける",
+    "meaning": "bị lột",
+    "pos": ""
+  },
+  {
+    "id": 201,
+    "kanji": "むく",
+    "reading": "むく",
+    "meaning": "lột",
+    "pos": ""
+  },
+  {
+    "id": 202,
+    "kanji": "滑る",
+    "reading": "すべる",
+    "meaning": "trượt",
+    "pos": ""
+  },
+  {
+    "id": 203,
+    "kanji": "積もる",
+    "reading": "つもる",
+    "meaning": "được tích tụ",
+    "pos": ""
+  },
+  {
+    "id": 204,
+    "kanji": "積む",
+    "reading": "つむ",
+    "meaning": "tích tụ, chất lại",
+    "pos": ""
+  },
+  {
+    "id": 205,
+    "kanji": "空く",
+    "reading": "あく",
+    "meaning": "bị thủng",
+    "pos": ""
+  },
+  {
+    "id": 206,
+    "kanji": "空ける",
+    "reading": "あける",
+    "meaning": "thủng",
+    "pos": ""
+  },
+  {
+    "id": 207,
+    "kanji": "下がる",
+    "reading": "さがる",
+    "meaning": "bị giảm",
+    "pos": ""
+  },
+  {
+    "id": 208,
+    "kanji": "下げる",
+    "reading": "さげる",
+    "meaning": "giảm",
+    "pos": ""
+  },
+  {
+    "id": 209,
+    "kanji": "冷える",
+    "reading": "ひえる",
+    "meaning": "bị lạnh",
+    "pos": ""
+  },
+  {
+    "id": 210,
+    "kanji": "冷やす",
+    "reading": "ひやす",
+    "meaning": "làm lạnh",
+    "pos": ""
+  },
+  {
+    "id": 211,
+    "kanji": "冷める",
+    "reading": "さめる",
+    "meaning": "bị nguội",
+    "pos": ""
+  },
+  {
+    "id": 212,
+    "kanji": "冷ます",
+    "reading": "さます",
+    "meaning": "làm nguội",
+    "pos": ""
+  },
+  {
+    "id": 213,
+    "kanji": "燃える",
+    "reading": "もえる",
+    "meaning": "cháy",
+    "pos": ""
+  },
+  {
+    "id": 214,
+    "kanji": "燃やす",
+    "reading": "もやす",
+    "meaning": "đốt",
+    "pos": ""
+  },
+  {
+    "id": 215,
+    "kanji": "沸く",
+    "reading": "わく",
+    "meaning": "sôi",
+    "pos": ""
+  },
+  {
+    "id": 216,
+    "kanji": "沸かす",
+    "reading": "わかす",
+    "meaning": "đun sôi",
+    "pos": ""
+  },
+  {
+    "id": 217,
+    "kanji": "鳴る",
+    "reading": "なる",
+    "meaning": "kêu",
+    "pos": ""
+  },
+  {
+    "id": 218,
+    "kanji": "鳴らす",
+    "reading": "ならす",
+    "meaning": "làm kêu",
+    "pos": ""
+  },
+  {
+    "id": 219,
+    "kanji": "役立つ",
+    "reading": "やくだつ",
+    "meaning": "hữu ích",
+    "pos": ""
+  },
+  {
+    "id": 220,
+    "kanji": "役立てる",
+    "reading": "やくだてる",
+    "meaning": "được sử dụng",
+    "pos": ""
+  },
+  {
+    "id": 221,
+    "kanji": "飾り",
+    "reading": "かざり",
+    "meaning": "trang trí",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 222,
+    "kanji": "遊び",
+    "reading": "あそび",
+    "meaning": "chơi",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 223,
+    "kanji": "集まり",
+    "reading": "あつまり",
+    "meaning": "tập hợp",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 224,
+    "kanji": "教え",
+    "reading": "おしえ",
+    "meaning": "dạy",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 225,
+    "kanji": "踊り",
+    "reading": "おどり",
+    "meaning": "nhảy",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 226,
+    "kanji": "思い",
+    "reading": "おもい",
+    "meaning": "suy nghĩ, cảm giác",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 227,
+    "kanji": "考え",
+    "reading": "かんがえ",
+    "meaning": "nghĩ, ý tưởng",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 228,
+    "kanji": "片づけ",
+    "reading": "かたづけ",
+    "meaning": "ngăn nắp",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 229,
+    "kanji": "手伝い",
+    "reading": "てつだい",
+    "meaning": "giúp đỡ",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 230,
+    "kanji": "働き",
+    "reading": "はたらき",
+    "meaning": "hoạt động",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 231,
+    "kanji": "決まり",
+    "reading": "きまり",
+    "meaning": "luật lệ",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 232,
+    "kanji": "騒ぎ",
+    "reading": "さわぎ",
+    "meaning": "ồn ào, om xòm",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 233,
+    "kanji": "知らせ",
+    "reading": "しらせ",
+    "meaning": "tin tức, thông báo",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 234,
+    "kanji": "頼み",
+    "reading": "たのみ",
+    "meaning": "yêu cầu",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 235,
+    "kanji": "疲れ",
+    "reading": "つかれ",
+    "meaning": "vất vả, mệt mỏi",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 236,
+    "kanji": "違い",
+    "reading": "ちがい",
+    "meaning": "khác biệt",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 237,
+    "kanji": "始め",
+    "reading": "はじめ",
+    "meaning": "khởi đầu",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 238,
+    "kanji": "続き",
+    "reading": "つづき",
+    "meaning": "tiếp tục",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 239,
+    "kanji": "暮れ",
+    "reading": "くれ",
+    "meaning": "cuối năm",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 240,
+    "kanji": "行き",
+    "reading": "いき",
+    "meaning": "đi",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 241,
+    "kanji": "帰り",
+    "reading": "かえり",
+    "meaning": "trở về",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 242,
+    "kanji": "急ぎ",
+    "reading": "いそぎ",
+    "meaning": "khẩn cấp, vội",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 243,
+    "kanji": "遅れ",
+    "reading": "おくれ",
+    "meaning": "gián đoạn",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 244,
+    "kanji": "貸し",
+    "reading": "かし",
+    "meaning": "cho mượn",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 245,
+    "kanji": "借り",
+    "reading": "かり",
+    "meaning": "mượn",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 246,
+    "kanji": "勝ち",
+    "reading": "かち",
+    "meaning": "thắng",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 247,
+    "kanji": "負け",
+    "reading": "まけ",
+    "meaning": "thua",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 248,
+    "kanji": "迎え",
+    "reading": "むかえ",
+    "meaning": "đón",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 249,
+    "kanji": "始まり",
+    "reading": "はじまり",
+    "meaning": "bắt đầu",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 250,
+    "kanji": "終わり",
+    "reading": "おわり",
+    "meaning": "kết thúc",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 251,
+    "kanji": "戻り",
+    "reading": "もどり",
+    "meaning": "trở về, trả lại",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 252,
+    "kanji": "別れ",
+    "reading": "わかれ",
+    "meaning": "chia ly",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 253,
+    "kanji": "喜び",
+    "reading": "よろこび",
+    "meaning": "hớn hở",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 254,
+    "kanji": "楽しみ",
+    "reading": "たのしみ",
+    "meaning": "sung sướng",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 255,
+    "kanji": "笑い",
+    "reading": "わらい",
+    "meaning": "cười",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 256,
+    "kanji": "驚き",
+    "reading": "おどろき",
+    "meaning": "ngạc nhiên",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 257,
+    "kanji": "怒り",
+    "reading": "いかり",
+    "meaning": "giận dữ",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 258,
+    "kanji": "悲しみ",
+    "reading": "かなしみ",
+    "meaning": "buồn bã",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 259,
+    "kanji": "幸せな",
+    "reading": "しあわせな",
+    "meaning": "hạnh phúc",
+    "pos": "連用名詞"
+  },
+  {
+    "id": 260,
+    "kanji": "得意な",
+    "reading": "とくいな",
+    "meaning": "mạnh, giỏi",
+    "pos": ""
+  },
+  {
+    "id": 261,
+    "kanji": "苦手な",
+    "reading": "にがてな",
+    "meaning": "yếu, kém",
+    "pos": ""
+  },
+  {
+    "id": 262,
+    "kanji": "熱心な",
+    "reading": "ねっしんな",
+    "meaning": "chăm chỉ",
+    "pos": ""
+  },
+  {
+    "id": 263,
+    "kanji": "夢中な",
+    "reading": "むちゅうな",
+    "meaning": "chú tâm",
+    "pos": ""
+  },
+  {
+    "id": 264,
+    "kanji": "退屈な",
+    "reading": "たいくつな",
+    "meaning": "chán",
+    "pos": ""
+  },
+  {
+    "id": 265,
+    "kanji": "健康な",
+    "reading": "けんこうな",
+    "meaning": "khỏe khoắn",
+    "pos": ""
+  },
+  {
+    "id": 266,
+    "kanji": "苦しい",
+    "reading": "くるしい",
+    "meaning": "cực khổ",
+    "pos": ""
+  },
+  {
+    "id": 267,
+    "kanji": "平気な",
+    "reading": "へいきな",
+    "meaning": "bình thản",
+    "pos": ""
+  },
+  {
+    "id": 268,
+    "kanji": "悔しい",
+    "reading": "くやしい",
+    "meaning": "cay cú",
+    "pos": ""
+  },
+  {
+    "id": 269,
+    "kanji": "うらやましい",
+    "reading": "うらやましい",
+    "meaning": "ghen tỵ",
+    "pos": ""
+  },
+  {
+    "id": 270,
+    "kanji": "かゆい",
+    "reading": "かゆい",
+    "meaning": "ngứa",
+    "pos": ""
+  },
+  {
+    "id": 271,
+    "kanji": "おとなしい",
+    "reading": "おとなしい",
+    "meaning": "trầm lặng",
+    "pos": ""
+  },
+  {
+    "id": 272,
+    "kanji": "我慢強い",
+    "reading": "がまんづよい",
+    "meaning": "chịu đựng giỏi",
+    "pos": ""
+  },
+  {
+    "id": 273,
+    "kanji": "正直な",
+    "reading": "しょうじきな",
+    "meaning": "trung thực",
+    "pos": ""
+  },
+  {
+    "id": 274,
+    "kanji": "けちな",
+    "reading": "けちな",
+    "meaning": "kẹt xỉ",
+    "pos": ""
+  },
+  {
+    "id": 275,
+    "kanji": "我儘な",
+    "reading": "わがままな",
+    "meaning": "ích kỷ",
+    "pos": ""
+  },
+  {
+    "id": 276,
+    "kanji": "積極的な",
+    "reading": "せっきょくてきな",
+    "meaning": "tích cực",
+    "pos": ""
+  },
+  {
+    "id": 277,
+    "kanji": "消極的な",
+    "reading": "しょうきょくてきな",
+    "meaning": "tiêu cực",
+    "pos": ""
+  },
+  {
+    "id": 278,
+    "kanji": "満足な",
+    "reading": "まんぞくな",
+    "meaning": "thỏa mãn",
+    "pos": ""
+  },
+  {
+    "id": 279,
+    "kanji": "不満な",
+    "reading": "ふまんな",
+    "meaning": "bất mãn",
+    "pos": ""
+  },
+  {
+    "id": 280,
+    "kanji": "不安な",
+    "reading": "ふあんな",
+    "meaning": "bất an",
+    "pos": ""
+  },
+  {
+    "id": 281,
+    "kanji": "大変な",
+    "reading": "たいへんな",
+    "meaning": "tồi tệ",
+    "pos": ""
+  },
+  {
+    "id": 282,
+    "kanji": "無理な",
+    "reading": "むりな",
+    "meaning": "vô lý",
+    "pos": ""
+  },
+  {
+    "id": 283,
+    "kanji": "不注意な",
+    "reading": "ふちゅういな",
+    "meaning": "không chú ý",
+    "pos": ""
+  },
+  {
+    "id": 284,
+    "kanji": "楽な",
+    "reading": "らくな",
+    "meaning": "thoải mái",
+    "pos": ""
+  },
+  {
+    "id": 285,
+    "kanji": "面倒な",
+    "reading": "めんどうな",
+    "meaning": "phiền phức",
+    "pos": ""
+  },
+  {
+    "id": 286,
+    "kanji": "失礼な",
+    "reading": "しつれいな",
+    "meaning": "thất lễ",
+    "pos": ""
+  },
+  {
+    "id": 287,
+    "kanji": "当然な",
+    "reading": "とうぜんな",
+    "meaning": "đương nhiên",
+    "pos": ""
+  },
+  {
+    "id": 288,
+    "kanji": "意外な",
+    "reading": "いがいな",
+    "meaning": "không ngờ đến",
+    "pos": ""
+  },
+  {
+    "id": 289,
+    "kanji": "結構な",
+    "reading": "けっこうな",
+    "meaning": "tốt, đủ",
+    "pos": ""
+  },
+  {
+    "id": 290,
+    "kanji": "派手な",
+    "reading": "はでな",
+    "meaning": "lòe loẹt",
+    "pos": ""
+  },
+  {
+    "id": 291,
+    "kanji": "地味な",
+    "reading": "じみな",
+    "meaning": "giản dị",
+    "pos": ""
+  },
+  {
+    "id": 292,
+    "kanji": "おしゃれな",
+    "reading": "おしゃれな",
+    "meaning": "thời trang, mốt",
+    "pos": ""
+  },
+  {
+    "id": 293,
+    "kanji": "変な",
+    "reading": "へんな",
+    "meaning": "lạ",
+    "pos": ""
+  },
+  {
+    "id": 294,
+    "kanji": "不思議な",
+    "reading": "ふしぎな",
+    "meaning": "thần bí",
+    "pos": ""
+  },
+  {
+    "id": 295,
+    "kanji": "ましな",
+    "reading": "ましな",
+    "meaning": "tốt lên",
+    "pos": ""
+  },
+  {
+    "id": 296,
+    "kanji": "むだな",
+    "reading": "むだな",
+    "meaning": "lãng phí",
+    "pos": ""
+  },
+  {
+    "id": 297,
+    "kanji": "自由な",
+    "reading": "じゆうな",
+    "meaning": "tự do",
+    "pos": ""
+  },
+  {
+    "id": 298,
+    "kanji": "不自由な",
+    "reading": "ふじゆうな",
+    "meaning": "tàn tật, không tự do",
+    "pos": ""
+  },
+  {
+    "id": 299,
+    "kanji": "温まる",
+    "reading": "あたたまる",
+    "meaning": "trở nên ấm hơn",
+    "pos": "形容詞"
+  },
+  {
+    "id": 300,
+    "kanji": "温める",
+    "reading": "あたためる",
+    "meaning": "ấm, nóng",
+    "pos": "形容詞"
+  },
+  {
+    "id": 301,
+    "kanji": "高まる",
+    "reading": "たかまる",
+    "meaning": "cao lên",
+    "pos": "形容詞"
+  },
+  {
+    "id": 302,
+    "kanji": "高める",
+    "reading": "たかめる",
+    "meaning": "làm cao lên",
+    "pos": "形容詞"
+  },
+  {
+    "id": 303,
+    "kanji": "強まる",
+    "reading": "つよまる",
+    "meaning": "mạnh lên",
+    "pos": "形容詞"
+  },
+  {
+    "id": 304,
+    "kanji": "強める",
+    "reading": "つよめる",
+    "meaning": "làm mạnh lên",
+    "pos": "形容詞"
+  },
+  {
+    "id": 305,
+    "kanji": "弱まる",
+    "reading": "よわまる",
+    "meaning": "yếu đi",
+    "pos": "形容詞"
+  },
+  {
+    "id": 306,
+    "kanji": "弱める",
+    "reading": "よわめる",
+    "meaning": "làm yếu đi",
+    "pos": "形容詞"
+  },
+  {
+    "id": 307,
+    "kanji": "広まる",
+    "reading": "ひろまる",
+    "meaning": "rộng ra",
+    "pos": "形容詞"
+  },
+  {
+    "id": 308,
+    "kanji": "広める",
+    "reading": "ひろめる",
+    "meaning": "làm rộng ra",
+    "pos": "形容詞"
+  },
+  {
+    "id": 309,
+    "kanji": "深まる",
+    "reading": "ふかまる",
+    "meaning": "sâu hơn",
+    "pos": "形容詞"
+  },
+  {
+    "id": 310,
+    "kanji": "深める",
+    "reading": "ふかめる",
+    "meaning": "làm sâu thêm",
+    "pos": "形容詞"
+  },
+  {
+    "id": 311,
+    "kanji": "世話",
+    "reading": "せわ",
+    "meaning": "chăm sóc",
+    "pos": "形容詞"
+  },
+  {
+    "id": 312,
+    "kanji": "家庭",
+    "reading": "かてい",
+    "meaning": "gia đình",
+    "pos": "形容詞"
+  },
+  {
+    "id": 313,
+    "kanji": "協力",
+    "reading": "きょうりょく",
+    "meaning": "hiệp lực",
+    "pos": "形容詞"
+  },
+  {
+    "id": 314,
+    "kanji": "感謝",
+    "reading": "かんしゃ",
+    "meaning": "cảm tạ",
+    "pos": "形容詞"
+  },
+  {
+    "id": 315,
+    "kanji": "お礼",
+    "reading": "おれい",
+    "meaning": "đáp lễ",
+    "pos": "形容詞"
+  },
+  {
+    "id": 316,
+    "kanji": "お詫び",
+    "reading": "おわび",
+    "meaning": "xin lỗi",
+    "pos": "形容詞"
+  },
+  {
+    "id": 317,
+    "kanji": "おじぎ",
+    "reading": "おじぎ",
+    "meaning": "cúi chào",
+    "pos": "形容詞"
+  },
+  {
+    "id": 318,
+    "kanji": "握手",
+    "reading": "あくしゅ",
+    "meaning": "bắt tay",
+    "pos": "形容詞"
+  },
+  {
+    "id": 319,
+    "kanji": "いじわる",
+    "reading": "いじわる",
+    "meaning": "xấu bụng",
+    "pos": "形容詞"
+  },
+  {
+    "id": 320,
+    "kanji": "いたずら",
+    "reading": "いたずら",
+    "meaning": "nghịch ngợm",
+    "pos": "形容詞"
+  },
+  {
+    "id": 321,
+    "kanji": "節約",
+    "reading": "せつやく",
+    "meaning": "tiết kiệm",
+    "pos": "形容詞"
+  },
+  {
+    "id": 322,
+    "kanji": "経営",
+    "reading": "けいえい",
+    "meaning": "quản lý",
+    "pos": "形容詞"
+  },
+  {
+    "id": 323,
+    "kanji": "反省",
+    "reading": "はんせい",
+    "meaning": "tự kiểm tra",
+    "pos": "形容詞"
+  },
+  {
+    "id": 324,
+    "kanji": "実行",
+    "reading": "じっこう",
+    "meaning": "thực hành",
+    "pos": "形容詞"
+  },
+  {
+    "id": 325,
+    "kanji": "進歩",
+    "reading": "しんぽ",
+    "meaning": "tiến bộ",
+    "pos": "形容詞"
+  },
+  {
+    "id": 326,
+    "kanji": "変化",
+    "reading": "へんか",
+    "meaning": "thay đổi, biến hóa",
+    "pos": "形容詞"
+  },
+  {
+    "id": 327,
+    "kanji": "発達",
+    "reading": "はったつ",
+    "meaning": "phát triển",
+    "pos": "形容詞"
+  },
+  {
+    "id": 328,
+    "kanji": "体力",
+    "reading": "たいりょく",
+    "meaning": "thể lực",
+    "pos": "形容詞"
+  },
+  {
+    "id": 329,
+    "kanji": "出場",
+    "reading": "しゅつじょう",
+    "meaning": "tham dự",
+    "pos": "形容詞"
+  },
+  {
+    "id": 330,
+    "kanji": "活躍",
+    "reading": "かつやく",
+    "meaning": "hoạt động",
+    "pos": "形容詞"
+  },
+  {
+    "id": 331,
+    "kanji": "競争",
+    "reading": "きょうそう",
+    "meaning": "cạnh tranh",
+    "pos": "形容詞"
+  },
+  {
+    "id": 332,
+    "kanji": "応援",
+    "reading": "おうえん",
+    "meaning": "cổ vũ",
+    "pos": "形容詞"
+  },
+  {
+    "id": 333,
+    "kanji": "拍手",
+    "reading": "はくしゅ",
+    "meaning": "vỗ tay",
+    "pos": "形容詞"
+  },
+  {
+    "id": 334,
+    "kanji": "人気",
+    "reading": "にんき",
+    "meaning": "nổi tiếng",
+    "pos": "形容詞"
+  },
+  {
+    "id": 335,
+    "kanji": "うわさ",
+    "reading": "うわさ",
+    "meaning": "tin đồn",
+    "pos": "形容詞"
+  },
+  {
+    "id": 336,
+    "kanji": "情報",
+    "reading": "じょうほう",
+    "meaning": "thông tin",
+    "pos": "形容詞"
+  },
+  {
+    "id": 337,
+    "kanji": "交換",
+    "reading": "こうかん",
+    "meaning": "trao đổi",
+    "pos": "形容詞"
+  },
+  {
+    "id": 338,
+    "kanji": "流行",
+    "reading": "りゅうこう",
+    "meaning": "trào lưu",
+    "pos": "形容詞"
+  },
+  {
+    "id": 339,
+    "kanji": "宣伝",
+    "reading": "せんでん",
+    "meaning": "tuyên truyền",
+    "pos": "形容詞"
+  },
+  {
+    "id": 340,
+    "kanji": "広告",
+    "reading": "こうこく",
+    "meaning": "quảng cáo",
+    "pos": "形容詞"
+  },
+  {
+    "id": 341,
+    "kanji": "注目",
+    "reading": "ちゅうもく",
+    "meaning": "chú trọng",
+    "pos": "形容詞"
+  },
+  {
+    "id": 342,
+    "kanji": "通訳",
+    "reading": "つうやく",
+    "meaning": "thông dịch",
+    "pos": "形容詞"
+  },
+  {
+    "id": 343,
+    "kanji": "翻訳",
+    "reading": "ほにゃく",
+    "meaning": "biên dịch",
+    "pos": "形容詞"
+  },
+  {
+    "id": 344,
+    "kanji": "伝言",
+    "reading": "でんごん",
+    "meaning": "tin nhắn thoại",
+    "pos": "形容詞"
+  },
+  {
+    "id": 345,
+    "kanji": "報告",
+    "reading": "ほうこく",
+    "meaning": "báo cáo",
+    "pos": "形容詞"
+  },
+  {
+    "id": 346,
+    "kanji": "録画",
+    "reading": "ろくが",
+    "meaning": "ghi lại",
+    "pos": "形容詞"
+  },
+  {
+    "id": 347,
+    "kanji": "混雑",
+    "reading": "こんざつ",
+    "meaning": "hỗn tạp",
+    "pos": "形容詞"
+  },
+  {
+    "id": 348,
+    "kanji": "渋滞",
+    "reading": "じゅうたい",
+    "meaning": "tắc đường",
+    "pos": "形容詞"
+  },
+  {
+    "id": 349,
+    "kanji": "衝突",
+    "reading": "しょうとつ",
+    "meaning": "xung đột",
+    "pos": "形容詞"
+  },
+  {
+    "id": 350,
+    "kanji": "被害",
+    "reading": "ひがい",
+    "meaning": "thiệt hại",
+    "pos": "形容詞"
+  },
+  {
+    "id": 351,
+    "kanji": "事故",
+    "reading": "じこ",
+    "meaning": "tai nạn",
+    "pos": "形容詞"
+  },
+  {
+    "id": 352,
+    "kanji": "事件",
+    "reading": "じけん",
+    "meaning": "sự kiện",
+    "pos": "形容詞"
+  },
+  {
+    "id": 353,
+    "kanji": "故障",
+    "reading": "こしょう",
+    "meaning": "hỏng",
+    "pos": "形容詞"
+  },
+  {
+    "id": 354,
+    "kanji": "修理",
+    "reading": "しゅうり",
+    "meaning": "sửa chữa",
+    "pos": "形容詞"
+  },
+  {
+    "id": 355,
+    "kanji": "停電",
+    "reading": "ていでん",
+    "meaning": "mất điện",
+    "pos": ""
+  },
+  {
+    "id": 356,
+    "kanji": "調子",
+    "reading": "ちょうし",
+    "meaning": "trạng thái",
+    "pos": ""
+  },
+  {
+    "id": 357,
+    "kanji": "緊張",
+    "reading": "きんちょう",
+    "meaning": "lo lắng",
+    "pos": ""
+  },
+  {
+    "id": 358,
+    "kanji": "自身",
+    "reading": "じしん",
+    "meaning": "tự tin",
+    "pos": ""
+  },
+  {
+    "id": 359,
+    "kanji": "自慢",
+    "reading": "じまん",
+    "meaning": "tự mãn",
+    "pos": ""
+  },
+  {
+    "id": 360,
+    "kanji": "感心",
+    "reading": "かんしん",
+    "meaning": "quan tâm",
+    "pos": ""
+  },
+  {
+    "id": 361,
+    "kanji": "感動",
+    "reading": "かんどう",
+    "meaning": "cảm động",
+    "pos": ""
+  },
+  {
+    "id": 362,
+    "kanji": "興奮",
+    "reading": "こうふん",
+    "meaning": "hưng phấn",
+    "pos": ""
+  },
+  {
+    "id": 363,
+    "kanji": "感想",
+    "reading": "かんそう",
+    "meaning": "cảm tưởng",
+    "pos": ""
+  },
+  {
+    "id": 364,
+    "kanji": "予想",
+    "reading": "よそう",
+    "meaning": "dự đoán",
+    "pos": ""
+  },
+  {
+    "id": 365,
+    "kanji": "専門",
+    "reading": "せんもん",
+    "meaning": "chuyên môn",
+    "pos": ""
+  },
+  {
+    "id": 366,
+    "kanji": "研究",
+    "reading": "けんきゅう",
+    "meaning": "nghiên cứu",
+    "pos": ""
+  },
+  {
+    "id": 367,
+    "kanji": "調査",
+    "reading": "ちょうさ",
+    "meaning": "điều tra",
+    "pos": ""
+  },
+  {
+    "id": 368,
+    "kanji": "原因",
+    "reading": "げんいん",
+    "meaning": "nguyên nhân",
+    "pos": ""
+  },
+  {
+    "id": 369,
+    "kanji": "結果",
+    "reading": "けっか",
+    "meaning": "kết quả",
+    "pos": ""
+  },
+  {
+    "id": 370,
+    "kanji": "解決",
+    "reading": "かいけつ",
+    "meaning": "giải quyết",
+    "pos": ""
+  },
+  {
+    "id": 371,
+    "kanji": "確認",
+    "reading": "かくにん",
+    "meaning": "xác nhận",
+    "pos": ""
+  },
+  {
+    "id": 372,
+    "kanji": "利用",
+    "reading": "りよう",
+    "meaning": "sử dụng",
+    "pos": ""
+  },
+  {
+    "id": 373,
+    "kanji": "理解",
+    "reading": "りかい",
+    "meaning": "lý giải",
+    "pos": ""
+  },
+  {
+    "id": 374,
+    "kanji": "発見",
+    "reading": "はっけん",
+    "meaning": "phát kiến",
+    "pos": ""
+  },
+  {
+    "id": 375,
+    "kanji": "発明",
+    "reading": "はつめい",
+    "meaning": "phát minh",
+    "pos": ""
+  },
+  {
+    "id": 376,
+    "kanji": "関係",
+    "reading": "かんけい",
+    "meaning": "quan hệ",
+    "pos": ""
+  },
+  {
+    "id": 377,
+    "kanji": "団体",
+    "reading": "だんたい",
+    "meaning": "đoàn thể",
+    "pos": ""
+  },
+  {
+    "id": 378,
+    "kanji": "選挙",
+    "reading": "せんきょ",
+    "meaning": "bầu cử",
+    "pos": ""
+  },
+  {
+    "id": 379,
+    "kanji": "税金",
+    "reading": "ぜいきん",
+    "meaning": "thuế",
+    "pos": ""
+  },
+  {
+    "id": 380,
+    "kanji": "責任",
+    "reading": "せきにん",
+    "meaning": "trách nhiệm",
+    "pos": ""
+  },
+  {
+    "id": 381,
+    "kanji": "書類",
+    "reading": "しょるい",
+    "meaning": "tài liệu",
+    "pos": ""
+  },
+  {
+    "id": 382,
+    "kanji": "題名",
+    "reading": "だいめい",
+    "meaning": "tiêu đề",
+    "pos": ""
+  },
+  {
+    "id": 383,
+    "kanji": "条件",
+    "reading": "じょうけん",
+    "meaning": "điều kiện",
+    "pos": ""
+  },
+  {
+    "id": 384,
+    "kanji": "締め切り",
+    "reading": "しめきり",
+    "meaning": "hạn cuối",
+    "pos": ""
+  },
+  {
+    "id": 385,
+    "kanji": "期間",
+    "reading": "きかん",
+    "meaning": "thời gian, thời kỳ",
+    "pos": ""
+  },
+  {
+    "id": 386,
+    "kanji": "倍",
+    "reading": "ばい",
+    "meaning": "lần",
+    "pos": ""
+  },
+  {
+    "id": 387,
+    "kanji": "くじ",
+    "reading": "くじ",
+    "meaning": "xổ số, rút thăm",
+    "pos": ""
+  },
+  {
+    "id": 388,
+    "kanji": "近道",
+    "reading": "ちかみち",
+    "meaning": "đường tắt",
+    "pos": ""
+  },
+  {
+    "id": 389,
+    "kanji": "中心",
+    "reading": "ちゅうしん",
+    "meaning": "trung tâm",
+    "pos": ""
+  },
+  {
+    "id": 390,
+    "kanji": "辺り",
+    "reading": "あたり",
+    "meaning": "gần, lân cận",
+    "pos": ""
+  },
+  {
+    "id": 391,
+    "kanji": "周り",
+    "reading": "まわり",
+    "meaning": "xung quanh, vòng quanh",
+    "pos": ""
+  },
+  {
+    "id": 392,
+    "kanji": "穴",
+    "reading": "あな",
+    "meaning": "lỗ",
+    "pos": ""
+  },
+  {
+    "id": 393,
+    "kanji": "列",
+    "reading": "れつ",
+    "meaning": "hàng",
+    "pos": ""
+  },
+  {
+    "id": 394,
+    "kanji": "幅",
+    "reading": "はば",
+    "meaning": "chiều rộng",
+    "pos": ""
+  },
+  {
+    "id": 395,
+    "kanji": "範囲",
+    "reading": "はんい",
+    "meaning": "phạm vi",
+    "pos": ""
+  },
+  {
+    "id": 396,
+    "kanji": "内容",
+    "reading": "ないよう",
+    "meaning": "nội dung",
+    "pos": ""
+  },
+  {
+    "id": 397,
+    "kanji": "中身",
+    "reading": "なかみ",
+    "meaning": "bên trong",
+    "pos": ""
+  },
+  {
+    "id": 398,
+    "kanji": "特徴",
+    "reading": "とくちょう",
+    "meaning": "đặc trưng",
+    "pos": ""
+  },
+  {
+    "id": 399,
+    "kanji": "普通",
+    "reading": "ふつう",
+    "meaning": "bình thường",
+    "pos": ""
+  },
+  {
+    "id": 400,
+    "kanji": "当たり前",
+    "reading": "あたりまえ",
+    "meaning": "đương nhiên",
+    "pos": ""
+  },
+  {
+    "id": 401,
+    "kanji": "偽",
+    "reading": "にせ",
+    "meaning": "giả",
+    "pos": ""
+  },
+  {
+    "id": 402,
+    "kanji": "別",
+    "reading": "べつ",
+    "meaning": "khác",
+    "pos": ""
+  },
+  {
+    "id": 403,
+    "kanji": "国籍",
+    "reading": "こくせき",
+    "meaning": "quốc tịch",
+    "pos": ""
+  },
+  {
+    "id": 404,
+    "kanji": "東洋",
+    "reading": "とうよう",
+    "meaning": "phương đông",
+    "pos": ""
+  },
+  {
+    "id": 405,
+    "kanji": "西洋",
+    "reading": "せいよう",
+    "meaning": "phương tây",
+    "pos": ""
+  },
+  {
+    "id": 406,
+    "kanji": "国際",
+    "reading": "こくさい",
+    "meaning": "quốc tế",
+    "pos": ""
+  },
+  {
+    "id": 407,
+    "kanji": "自然",
+    "reading": "しぜん",
+    "meaning": "tự nhiên",
+    "pos": ""
+  },
+  {
+    "id": 408,
+    "kanji": "景色",
+    "reading": "けしき",
+    "meaning": "phong cảnh",
+    "pos": ""
+  },
+  {
+    "id": 409,
+    "kanji": "宗教",
+    "reading": "しゅうきょう",
+    "meaning": "tôn giáo",
+    "pos": ""
+  },
+  {
+    "id": 410,
+    "kanji": "愛",
+    "reading": "あい",
+    "meaning": "yêu",
+    "pos": ""
+  },
+  {
+    "id": 411,
+    "kanji": "届く",
+    "reading": "とどく",
+    "meaning": "được giao đến",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 412,
+    "kanji": "届ける",
+    "reading": "とどける",
+    "meaning": "giao đến",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 413,
+    "kanji": "かく",
+    "reading": "かく",
+    "meaning": "gãi",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 414,
+    "kanji": "つかむ",
+    "reading": "つかむ",
+    "meaning": "tóm, chộp",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 415,
+    "kanji": "握る",
+    "reading": "にぎる",
+    "meaning": "nắm chặt",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 416,
+    "kanji": "抑える",
+    "reading": "おさえる",
+    "meaning": "giữ",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 417,
+    "kanji": "近づく",
+    "reading": "ちかづく",
+    "meaning": "lại gần",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 418,
+    "kanji": "近づける",
+    "reading": "ちかづける",
+    "meaning": "mang đến gần",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 419,
+    "kanji": "合う",
+    "reading": "あう",
+    "meaning": "gặp",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 420,
+    "kanji": "合わせる",
+    "reading": "あわせる",
+    "meaning": "tập hợp, hiệp lực",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 421,
+    "kanji": "当たる",
+    "reading": "あたる",
+    "meaning": "bị đánh",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 422,
+    "kanji": "当てる",
+    "reading": "あてる",
+    "meaning": "đánh",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 423,
+    "kanji": "比べる",
+    "reading": "くらべる",
+    "meaning": "so sánh",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 424,
+    "kanji": "似合う",
+    "reading": "にあう",
+    "meaning": "hợp",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 425,
+    "kanji": "似る",
+    "reading": "にる",
+    "meaning": "giống",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 426,
+    "kanji": "似せる",
+    "reading": "にせる",
+    "meaning": "bắt chước",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 427,
+    "kanji": "分かれる",
+    "reading": "わかれる",
+    "meaning": "được chia ra",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 428,
+    "kanji": "分ける",
+    "reading": "わける",
+    "meaning": "chia",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 429,
+    "kanji": "足す",
+    "reading": "たす",
+    "meaning": "cộng, thêm vào",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 430,
+    "kanji": "引く",
+    "reading": "ひく",
+    "meaning": "kéo, trừ",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 431,
+    "kanji": "増える",
+    "reading": "ふえる",
+    "meaning": "tăng lên",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 432,
+    "kanji": "増やす",
+    "reading": "ふやす",
+    "meaning": "làm tăng lên",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 433,
+    "kanji": "減る",
+    "reading": "へる",
+    "meaning": "giảm xuống",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 434,
+    "kanji": "減らす",
+    "reading": "へらす",
+    "meaning": "làm giảm xuống",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 435,
+    "kanji": "変わる",
+    "reading": "かわる",
+    "meaning": "thay đổi",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 436,
+    "kanji": "変える",
+    "reading": "かえる",
+    "meaning": "làm thay đổi",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 437,
+    "kanji": "代わる・替わる・換わる",
+    "reading": "かわる",
+    "meaning": "thay",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 438,
+    "kanji": "代える・替える・換える",
+    "reading": "かえる",
+    "meaning": "đổi",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 439,
+    "kanji": "返る",
+    "reading": "かえる",
+    "meaning": "được trả lại",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 440,
+    "kanji": "返す",
+    "reading": "かえす",
+    "meaning": "trả lại",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 441,
+    "kanji": "譲る",
+    "reading": "ゆずる",
+    "meaning": "nhường",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 442,
+    "kanji": "助かる",
+    "reading": "たすかる",
+    "meaning": "được giúp",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 443,
+    "kanji": "助ける",
+    "reading": "たすける",
+    "meaning": "giúp",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 444,
+    "kanji": "いじめる",
+    "reading": "いじめる",
+    "meaning": "bắt nạt",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 445,
+    "kanji": "だまる",
+    "reading": "だまる",
+    "meaning": "lừa",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 446,
+    "kanji": "盗む",
+    "reading": "ぬすむ",
+    "meaning": "lấy cắp",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 447,
+    "kanji": "刺さる",
+    "reading": "ささる",
+    "meaning": "bị đâm",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 448,
+    "kanji": "刺す",
+    "reading": "さす",
+    "meaning": "đâm",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 449,
+    "kanji": "殺す",
+    "reading": "ころす",
+    "meaning": "giết",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 450,
+    "kanji": "隠れる",
+    "reading": "かくれる",
+    "meaning": "ẩn náu, trốn",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 451,
+    "kanji": "隠す",
+    "reading": "かくす",
+    "meaning": "che giấu",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 452,
+    "kanji": "埋まる",
+    "reading": "うまる",
+    "meaning": "bị chôn",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 453,
+    "kanji": "埋める",
+    "reading": "うめる",
+    "meaning": "chôn",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 454,
+    "kanji": "囲む",
+    "reading": "かこむ",
+    "meaning": "vây quanh",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 455,
+    "kanji": "詰まる",
+    "reading": "つまる",
+    "meaning": "đầy, chặt",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 456,
+    "kanji": "詰める",
+    "reading": "つめる",
+    "meaning": "đóng gói",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 457,
+    "kanji": "開く",
+    "reading": "ひらく",
+    "meaning": "mở",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 458,
+    "kanji": "閉じる",
+    "reading": "とじる",
+    "meaning": "dđóng",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 459,
+    "kanji": "飛ぶ",
+    "reading": "とぶ",
+    "meaning": "bay",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 460,
+    "kanji": "飛ばす",
+    "reading": "とばす",
+    "meaning": "cho bay",
+    "pos": "動詞Ｂ"
+  },
+  {
+    "id": 461,
+    "kanji": "振る",
+    "reading": "ふる",
+    "meaning": "rung, vẫy",
+    "pos": ""
+  },
+  {
+    "id": 462,
+    "kanji": "めくる",
+    "reading": "めくる",
+    "meaning": "lật lên",
+    "pos": ""
+  },
+  {
+    "id": 463,
+    "kanji": "見かける",
+    "reading": "みかける",
+    "meaning": "tình cờ thấy",
+    "pos": ""
+  },
+  {
+    "id": 464,
+    "kanji": "確かめる",
+    "reading": "たしかめる",
+    "meaning": "kiểm tra lại",
+    "pos": ""
+  },
+  {
+    "id": 465,
+    "kanji": "試す",
+    "reading": "ためす",
+    "meaning": "thử",
+    "pos": ""
+  },
+  {
+    "id": 466,
+    "kanji": "繰り返す",
+    "reading": "くりかえす",
+    "meaning": "lặp lại",
+    "pos": ""
+  },
+  {
+    "id": 467,
+    "kanji": "訳す",
+    "reading": "やくす",
+    "meaning": "dịch",
+    "pos": ""
+  },
+  {
+    "id": 468,
+    "kanji": "行う",
+    "reading": "おこなう",
+    "meaning": "tổ chức",
+    "pos": ""
+  },
+  {
+    "id": 469,
+    "kanji": "間違う",
+    "reading": "まちがう",
+    "meaning": "bị sai",
+    "pos": ""
+  },
+  {
+    "id": 470,
+    "kanji": "間違える",
+    "reading": "まちがえる",
+    "meaning": "làm sai",
+    "pos": ""
+  },
+  {
+    "id": 471,
+    "kanji": "許す",
+    "reading": "ゆるす",
+    "meaning": "tha thứ, cho phép",
+    "pos": ""
+  },
+  {
+    "id": 472,
+    "kanji": "慣れる",
+    "reading": "なれる",
+    "meaning": "quen",
+    "pos": ""
+  },
+  {
+    "id": 473,
+    "kanji": "慣らす",
+    "reading": "ならす",
+    "meaning": "khởi động",
+    "pos": ""
+  },
+  {
+    "id": 474,
+    "kanji": "立つ",
+    "reading": "たつ",
+    "meaning": "đứng",
+    "pos": ""
+  },
+  {
+    "id": 475,
+    "kanji": "立てる",
+    "reading": "たてる",
+    "meaning": "dựng lên",
+    "pos": ""
+  },
+  {
+    "id": 476,
+    "kanji": "建つ",
+    "reading": "たつ",
+    "meaning": "được xây",
+    "pos": ""
+  },
+  {
+    "id": 477,
+    "kanji": "建てる",
+    "reading": "たてる",
+    "meaning": "xây",
+    "pos": ""
+  },
+  {
+    "id": 478,
+    "kanji": "育つ",
+    "reading": "そだつ",
+    "meaning": "được nuôi dạy",
+    "pos": ""
+  },
+  {
+    "id": 479,
+    "kanji": "育てる",
+    "reading": "そだてる",
+    "meaning": "nuôi, dạy",
+    "pos": ""
+  },
+  {
+    "id": 480,
+    "kanji": "生える",
+    "reading": "はえる",
+    "meaning": "mọc",
+    "pos": ""
+  },
+  {
+    "id": 481,
+    "kanji": "生やす",
+    "reading": "はやす",
+    "meaning": "nuôi(râu)",
+    "pos": ""
+  },
+  {
+    "id": 482,
+    "kanji": "汚れる",
+    "reading": "よごれる",
+    "meaning": "bị bẩn",
+    "pos": ""
+  },
+  {
+    "id": 483,
+    "kanji": "汚す",
+    "reading": "よごす",
+    "meaning": "làm bẩn",
+    "pos": ""
+  },
+  {
+    "id": 484,
+    "kanji": "壊れる",
+    "reading": "こわれる",
+    "meaning": "bị hỏng",
+    "pos": ""
+  },
+  {
+    "id": 485,
+    "kanji": "壊す",
+    "reading": "こわす",
+    "meaning": "làm hỏng",
+    "pos": ""
+  },
+  {
+    "id": 486,
+    "kanji": "割れる",
+    "reading": "われる",
+    "meaning": "bị vỡ",
+    "pos": ""
+  },
+  {
+    "id": 487,
+    "kanji": "割る",
+    "reading": "わる",
+    "meaning": "làm vỡ",
+    "pos": ""
+  },
+  {
+    "id": 488,
+    "kanji": "折れる",
+    "reading": "おれる",
+    "meaning": "bị gãy",
+    "pos": ""
+  },
+  {
+    "id": 489,
+    "kanji": "折る",
+    "reading": "おる",
+    "meaning": "làm gãy",
+    "pos": ""
+  },
+  {
+    "id": 490,
+    "kanji": "破れる",
+    "reading": "やぶれる",
+    "meaning": "bị rách",
+    "pos": ""
+  },
+  {
+    "id": 491,
+    "kanji": "破る",
+    "reading": "やぶる",
+    "meaning": "xé rách",
+    "pos": ""
+  },
+  {
+    "id": 492,
+    "kanji": "曲がる",
+    "reading": "まがる",
+    "meaning": "gập, cong",
+    "pos": ""
+  },
+  {
+    "id": 493,
+    "kanji": "曲げる",
+    "reading": "まげる",
+    "meaning": "bẻ, uốn",
+    "pos": ""
+  },
+  {
+    "id": 494,
+    "kanji": "外れる",
+    "reading": "はずれる",
+    "meaning": "bị rời ra",
+    "pos": ""
+  },
+  {
+    "id": 495,
+    "kanji": "外す",
+    "reading": "はずす",
+    "meaning": "tách ra",
+    "pos": ""
+  },
+  {
+    "id": 496,
+    "kanji": "揺れる",
+    "reading": "ゆれる",
+    "meaning": "bị rung",
+    "pos": ""
+  },
+  {
+    "id": 497,
+    "kanji": "揺らす",
+    "reading": "ゆらす",
+    "meaning": "đung đưa",
+    "pos": ""
+  },
+  {
+    "id": 498,
+    "kanji": "流れる",
+    "reading": "ながれる",
+    "meaning": "chảy",
+    "pos": ""
+  },
+  {
+    "id": 499,
+    "kanji": "流す",
+    "reading": "ながす",
+    "meaning": "cho chảy",
+    "pos": ""
+  },
+  {
+    "id": 500,
+    "kanji": "濡れる",
+    "reading": "ぬれる",
+    "meaning": "bị ướt",
+    "pos": ""
+  },
+  {
+    "id": 501,
+    "kanji": "濡らす",
+    "reading": "ぬらす",
+    "meaning": "làm ướt",
+    "pos": ""
+  },
+  {
+    "id": 502,
+    "kanji": "迷う",
+    "reading": "まよう",
+    "meaning": "lạc đường",
+    "pos": ""
+  },
+  {
+    "id": 503,
+    "kanji": "悩む",
+    "reading": "なやむ",
+    "meaning": "băn khoăn",
+    "pos": ""
+  },
+  {
+    "id": 504,
+    "kanji": "慌てる",
+    "reading": "あわてる",
+    "meaning": "vội vàng",
+    "pos": ""
+  },
+  {
+    "id": 505,
+    "kanji": "覚める",
+    "reading": "さめる",
+    "meaning": "thức dậy",
+    "pos": ""
+  },
+  {
+    "id": 506,
+    "kanji": "覚ます",
+    "reading": "さます",
+    "meaning": "mở mắt, tỉnh",
+    "pos": ""
+  },
+  {
+    "id": 507,
+    "kanji": "眠る",
+    "reading": "ねむる",
+    "meaning": "ngủ",
+    "pos": ""
+  },
+  {
+    "id": 508,
+    "kanji": "祈る",
+    "reading": "いのる",
+    "meaning": "cầu, khấn",
+    "pos": ""
+  },
+  {
+    "id": 509,
+    "kanji": "祝う",
+    "reading": "いわう",
+    "meaning": "ăn mừng",
+    "pos": ""
+  },
+  {
+    "id": 510,
+    "kanji": "感じる",
+    "reading": "かんじる",
+    "meaning": "cảm thấy",
+    "pos": ""
+  },
+  {
+    "id": 511,
+    "kanji": "クラスメート",
+    "reading": "bạn cùng lớp",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 512,
+    "kanji": "グループ",
+    "reading": "nhóm",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 513,
+    "kanji": "チーム",
+    "reading": "đội",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 514,
+    "kanji": "プロフェッショナル",
+    "reading": "chuyên nghiệp",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 515,
+    "kanji": "アマチュア",
+    "reading": "nghiệp dư",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 516,
+    "kanji": "トレーニング",
+    "reading": "đào tạo",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 517,
+    "kanji": "マッサージ",
+    "reading": "mát xa",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 518,
+    "kanji": "アドバイス",
+    "reading": "khuyên",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 519,
+    "kanji": "アイデア・アイディア",
+    "reading": "ý tưởng",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 520,
+    "kanji": "トップ",
+    "reading": "top",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 521,
+    "kanji": "スピード",
+    "reading": "tốc độ",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 522,
+    "kanji": "ラッシュ",
+    "reading": "đông đúc",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 523,
+    "kanji": "バイク",
+    "reading": "xe máy",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 524,
+    "kanji": "ヘルメット",
+    "reading": "mũ bảo hiểm",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 525,
+    "kanji": "コンタクトレンズ",
+    "reading": "kính áp tròng",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 526,
+    "kanji": "ガラス",
+    "reading": "kính",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 527,
+    "kanji": "プラスチック",
+    "reading": "nhựa",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 528,
+    "kanji": "ベランダ",
+    "reading": "ban công",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 529,
+    "kanji": "ペット",
+    "reading": "thú cưng",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 530,
+    "kanji": "ベンチ",
+    "reading": "ghế bành",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 531,
+    "kanji": "デザイン",
+    "reading": "thiết kế",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 532,
+    "kanji": "バーゲンセール",
+    "reading": "sale",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 533,
+    "kanji": "パート",
+    "reading": "làm thêm",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 534,
+    "kanji": "コンビニエンスストア",
+    "reading": "cửa hàng tiện ích",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 535,
+    "kanji": "レジ",
+    "reading": "máy tính tiền",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 536,
+    "kanji": "レシート",
+    "reading": "hóa đơn",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 537,
+    "kanji": "インスタント",
+    "reading": "ăn liền",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 538,
+    "kanji": "ファストフード",
+    "reading": "đồ ăn nhanh",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 539,
+    "kanji": "フルーツ",
+    "reading": "trái cây",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 540,
+    "kanji": "デザート",
+    "reading": "tráng miệng",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 541,
+    "kanji": "インターネット",
+    "reading": "internet",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 542,
+    "kanji": "チャイム",
+    "reading": "chuông",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 543,
+    "kanji": "アナウンス",
+    "reading": "thông báo",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 544,
+    "kanji": "メッセージ",
+    "reading": "tin nhắn",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 545,
+    "kanji": "パンフレット",
+    "reading": "tờ rơi",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 546,
+    "kanji": "カード",
+    "reading": "card",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 547,
+    "kanji": "インタビュー",
+    "reading": "phỏng vấn",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 548,
+    "kanji": "アンケート",
+    "reading": "tờ câu hỏi",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 549,
+    "kanji": "データ",
+    "reading": "dữ liệu",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 550,
+    "kanji": "パーセント",
+    "reading": "phần trăm",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 551,
+    "kanji": "こい",
+    "reading": "đậm, đặc",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 552,
+    "kanji": "うすい",
+    "reading": "mỏng, nhạt",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 553,
+    "kanji": "すっぱい",
+    "reading": "chua",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 554,
+    "kanji": "くさい",
+    "reading": "thối",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 555,
+    "kanji": "おかしい",
+    "reading": "lạ",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 556,
+    "kanji": "かっこいい",
+    "reading": "bảnh bao",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 557,
+    "kanji": "うまい",
+    "reading": "ngon",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 558,
+    "kanji": "したしい",
+    "reading": "thân thiết",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 559,
+    "kanji": "くわしい",
+    "reading": "chi tiết",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 560,
+    "kanji": "こまかい",
+    "reading": "tiểu tiết, bé",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 561,
+    "kanji": "あさい",
+    "reading": "nông",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 562,
+    "kanji": "かたい",
+    "reading": "cứng",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 563,
+    "kanji": "ぬるい",
+    "reading": "nguội",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 564,
+    "kanji": "まぶしい",
+    "reading": "chói",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 565,
+    "kanji": "むしあつい",
+    "reading": "nóng ẩm",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 566,
+    "kanji": "せいけつな",
+    "reading": "sạch",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 567,
+    "kanji": "しんせんな",
+    "reading": "tươi",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 568,
+    "kanji": "ゆたかな",
+    "reading": "giàu có",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 569,
+    "kanji": "りっぱな",
+    "reading": "siêu",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 570,
+    "kanji": "せいかくな",
+    "reading": "chính xác",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 571,
+    "kanji": "たしかな",
+    "reading": "đích thực",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 572,
+    "kanji": "じゅうような",
+    "reading": "quan trọng",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 573,
+    "kanji": "ひつような",
+    "reading": "cần thiết",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 574,
+    "kanji": "もったいない",
+    "reading": "lãng phí",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 575,
+    "kanji": "すごい",
+    "reading": "ghê, siêu",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 576,
+    "kanji": "ひどい",
+    "reading": "tồi",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 577,
+    "kanji": "はげしい",
+    "reading": "mãnh liệt",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 578,
+    "kanji": "そっくりな",
+    "reading": "giống",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 579,
+    "kanji": "きゅうな",
+    "reading": "đột nhiên",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 580,
+    "kanji": "てきとな",
+    "reading": "phù hợp",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 581,
+    "kanji": "とくべつな",
+    "reading": "đặc biệt",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 582,
+    "kanji": "かんぜんな",
+    "reading": "toàn bộ",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 583,
+    "kanji": "さかんな",
+    "reading": "thịnh vượng",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 584,
+    "kanji": "さまざまな",
+    "reading": "đa đạng",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 585,
+    "kanji": "かのうな",
+    "reading": "khả thi",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 586,
+    "kanji": "ふかのうな",
+    "reading": "bất khả thi",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 587,
+    "kanji": "きほんてきな",
+    "reading": "cơ bản",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 588,
+    "kanji": "こくさいてきな",
+    "reading": "tính quốc tế",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 589,
+    "kanji": "ばらばらな",
+    "reading": "tung tóe, chia rẽ",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 590,
+    "kanji": "ぼろぼろな",
+    "reading": "rách nát, te tua",
+    "meaning": "",
+    "pos": "39"
+  },
+  {
+    "id": 591,
+    "kanji": "",
+    "reading": "846",
+    "meaning": "ぐっすり",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 592,
+    "kanji": "",
+    "reading": "847",
+    "meaning": "きちんと",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 593,
+    "kanji": "",
+    "reading": "848",
+    "meaning": "しっかり",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 594,
+    "kanji": "",
+    "reading": "849",
+    "meaning": "はっきり",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 595,
+    "kanji": "",
+    "reading": "850",
+    "meaning": "じっと",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 596,
+    "kanji": "",
+    "reading": "851",
+    "meaning": "そっと",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 597,
+    "kanji": "",
+    "reading": "852",
+    "meaning": "別々に",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 598,
+    "kanji": "",
+    "reading": "853",
+    "meaning": "それぞれ",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 599,
+    "kanji": "",
+    "reading": "854",
+    "meaning": "互いに",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 600,
+    "kanji": "",
+    "reading": "855",
+    "meaning": "直接",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 601,
+    "kanji": "",
+    "reading": "856",
+    "meaning": "本当に",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 602,
+    "kanji": "",
+    "reading": "857",
+    "meaning": "必ず",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 603,
+    "kanji": "",
+    "reading": "858",
+    "meaning": "絶対に",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 604,
+    "kanji": "",
+    "reading": "859",
+    "meaning": "特に",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 605,
+    "kanji": "",
+    "reading": "860",
+    "meaning": "ただ",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 606,
+    "kanji": "",
+    "reading": "861",
+    "meaning": "少なくとも",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 607,
+    "kanji": "",
+    "reading": "862",
+    "meaning": "決して",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 608,
+    "kanji": "",
+    "reading": "863",
+    "meaning": "少しも",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 609,
+    "kanji": "",
+    "reading": "864",
+    "meaning": "ちっとも",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 610,
+    "kanji": "",
+    "reading": "865",
+    "meaning": "全く",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 611,
+    "kanji": "",
+    "reading": "866",
+    "meaning": "とても",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 612,
+    "kanji": "",
+    "reading": "867",
+    "meaning": "どんなに",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 613,
+    "kanji": "",
+    "reading": "868",
+    "meaning": "どうしても",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 614,
+    "kanji": "",
+    "reading": "869",
+    "meaning": "まるで",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 615,
+    "kanji": "",
+    "reading": "870",
+    "meaning": "一体",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 616,
+    "kanji": "",
+    "reading": "871",
+    "meaning": "別に",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 617,
+    "kanji": "",
+    "reading": "872",
+    "meaning": "たった",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 618,
+    "kanji": "",
+    "reading": "873",
+    "meaning": "ほんの",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 619,
+    "kanji": "",
+    "reading": "874",
+    "meaning": "それで",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 620,
+    "kanji": "",
+    "reading": "875",
+    "meaning": "そこで",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 621,
+    "kanji": "",
+    "reading": "876",
+    "meaning": "そのうえ",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 622,
+    "kanji": "",
+    "reading": "877",
+    "meaning": "また",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 623,
+    "kanji": "",
+    "reading": "878",
+    "meaning": "または",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 624,
+    "kanji": "",
+    "reading": "879",
+    "meaning": "それとも",
+    "pos": "Bài 12"
+  },
+  {
+    "id": 625,
+    "kanji": "",
+    "reading": "880",
+    "meaning": "つまり",
+    "pos": "Bài 12"
+  }
+];
+
+    /* ── SYSTEM APP ARCHITECTURE STATE ── */
+    let currentTab = 'home';
+    let studyIndex = 0;
+    let learntIds = [];
+    let savedWordRelations = []; 
+    let MY_VOCAB_PAGES = [];
+    let currentVocabPageId = null;
+    let NOTES = [];
+    let isEditingNotebookTitle = false; // Persistent page header state modifier
+
+    const id = x => document.getElementById(x);
+
+    /* ── RUN INITIAL ENGINE STATE ── */
+    function loadState() {
+      try {
+        learntIds = JSON.parse(localStorage.getItem('jlpt_learntIds')) || [];
+        savedWordRelations = JSON.parse(localStorage.getItem('jlpt_savedWordRelations')) || [];
+        MY_VOCAB_PAGES = JSON.parse(localStorage.getItem('jlpt_MY_VOCAB_PAGES')) || [
+          { id: 'p1', title: '名詞 Noun Collection - Bài 1' },
+          { id: 'p2', title: 'Weak Grammar Target Items' }
+        ];
+        NOTES = JSON.parse(localStorage.getItem('jlpt_NOTES')) || [];
+        
+        if (MY_VOCAB_PAGES.length > 0 && !currentVocabPageId) {
+          currentVocabPageId = MY_VOCAB_PAGES[0].id;
+        }
+      } catch(e) {
+        console.error("Local Storage configuration mismatch reset", e);
+      }
+      updateStats();
+    }
+
+    function saveState() { localStorage.setItem('jlpt_learntIds', JSON.stringify(learntIds)); updateStats(); }
+    function saveRelations() { localStorage.setItem('jlpt_savedWordRelations', JSON.stringify(savedWordRelations)); updateStats(); }
+    function savePages() { localStorage.setItem('jlpt_MY_VOCAB_PAGES', JSON.stringify(MY_VOCAB_PAGES)); }
+    function saveNotes() { localStorage.setItem('jlpt_NOTES', JSON.stringify(NOTES)); }
+
+    function updateStats() {
+      id('stat-total-cards').textContent = VOCAB.length;
+      id('stat-learnt-cards').textContent = learntIds.length;
+      id('stat-saved-words').textContent = savedWordRelations.length;
+    }
+
+    /* ── NAVIGATION CORE TAB SWITCHER ── */
+    function switchTab(t) {
+      currentTab = t;
+      document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-view').forEach(v => v.style.display = 'none');
+      
+      const targetBtn = id(`tab-${t}`);
+      if (targetBtn) targetBtn.classList.add('active');
+      
+      const targetView = id(`view-${t}`);
+      if (targetView) targetView.style.display = 'block';
+      
+      if (t === 'study') renderStudyCard();
+      if (t === 'dict') searchDict();
+      if (t === 'myvocab') {
+        isEditingNotebookTitle = false; // Ensure it returns clean
+        renderMyVocab();
+      }
+      updateStats();
+    }
+
+    /* ── ACTIVE STUDY DECK CONTROLLER ── */
+    function renderStudyCard() {
+      if (!VOCAB.length) return;
+      const card = VOCAB[studyIndex];
+      id('fc-kanji').textContent = card.kanji;
+      id('fc-reading').textContent = card.reading;
+      id('fc-meaning').textContent = card.meaning;
+      id('fc-pos').textContent = card.pos;
+      id('flashcard-element').classList.remove('flipped');
+      
+      const fillPerc = ((studyIndex + 1) / VOCAB.length) * 100;
+      id('study-progress-fill').style.width = `${fillPerc}%`;
+      id('study-progress-lbl').textContent = `Card ${studyIndex + 1} of ${VOCAB.length}`;
+      
+      const totalMasteredPerc = Math.round((learntIds.length / VOCAB.length) * 100);
+      id('study-percent-lbl').textContent = `${totalMasteredPerc}% Mastered`;
+    }
+
+    function flip() { id('flashcard-element').classList.toggle('flipped'); }
+    function next() { studyIndex = (studyIndex + 1) % VOCAB.length; renderStudyCard(); }
+    function prev() { studyIndex = (studyIndex - 1 + VOCAB.length) % VOCAB.length; renderStudyCard(); }
+    
+    function markLearnt() {
+      const card = VOCAB[studyIndex];
+      if (!learntIds.includes(card.id)) learntIds.push(card.id);
+      saveState(); next();
+    }
+    function markHard() {
+      const card = VOCAB[studyIndex];
+      learntIds = learntIds.filter(x => x !== card.id);
+      saveState(); next();
+    }
+
+    /* ── SEARCH DICTIONARY SYSTEM ── */
+    function searchDict() {
+      const query = id('dict-search').value.toLowerCase().trim();
+      const filtered = VOCAB.filter(x => 
+        x.kanji.includes(query) || 
+        x.reading.includes(query) || 
+        x.meaning.toLowerCase().includes(query)
+      );
+      
+      id('dict-results-container').innerHTML = filtered.map(x => {
+        const isSavedOnActivePage = savedWordRelations.some(r => r.pageId === currentVocabPageId && r.vocabId === x.id);
+        return `
+          <div class="vocab-item">
+            <div>
+              <div class="vocab-main">
+                <span class="vocab-kanji">${x.kanji}</span>
+                <span class="vocab-reading">【${x.reading}】</span>
+              </div>
+              <div class="vocab-details">
+                <span class="vocab-badge">${x.pos}</span>
+                <span class="vocab-meaning">${x.meaning}</span>
+              </div>
+            </div>
+            <button class="btn-save-vocab ${isSavedOnActivePage ? 'saved' : ''}" onclick="toggleSaveWord(${x.id}, this)" title="Pin to active workspace page">
+              <i class="ti ${isSavedOnActivePage ? 'ti-bookmark-filled' : 'ti-bookmark'}"></i>
+            </button>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function toggleSaveWord(vId, btnEl) {
+      if (!currentVocabPageId) {
+        alert('Please create or select a Custom Notebook workspace layout page first.');
+        return;
+      }
+      const matchIndex = savedWordRelations.findIndex(r => r.pageId === currentVocabPageId && r.vocabId === vId);
+      if (matchIndex > -1) {
+        savedWordRelations.splice(matchIndex, 1);
+        btnEl.classList.remove('saved');
+        btnEl.innerHTML = `<i class="ti ti-bookmark"></i>`;
+      } else {
+        savedWordRelations.push({ pageId: currentVocabPageId, vocabId: vId });
+        btnEl.classList.add('saved');
+        btnEl.innerHTML = `<i class="ti ti-bookmark-filled"></i>`;
+      }
+      saveRelations();
+      if (currentTab === 'myvocab') renderMyVocab();
+    }
+
+    /* ── PERSISTENT NOTEBOOK & EDITABLE TITLE ENGINE ── */
+    function setNotebookTitleEditing(editingState) {
+      isEditingNotebookTitle = editingState;
+      renderMyVocab();
+    }
+
+    function saveActiveNotebookTitle() {
+      const inputElement = id('edit-notebook-title-input');
+      if (inputElement) {
+        const cleanTitleValue = inputElement.value.trim();
+        if (cleanTitleValue) {
+          const targetPage = MY_VOCAB_PAGES.find(p => p.id === currentVocabPageId);
+          if (targetPage) {
+            targetPage.title = cleanTitleValue;
+            savePages();
+          }
+        }
+      }
+      isEditingNotebookTitle = false;
+      renderMyVocab();
+    }
+
+    function renderMyVocab() {
+      // 1. Render Left Sidebar Navigation Timeline
+      const sidebarMenu = id('notebook-pages-list');
+      sidebarMenu.innerHTML = MY_VOCAB_PAGES.map(p => {
+        const count = savedWordRelations.filter(r => r.pageId === p.id).length;
+        return `
+          <li>
+            <button class="menu-item-btn ${p.id === currentVocabPageId ? 'active' : ''}" onclick="selectNotebookPage('${p.id}')">
+              <span>📓 ${escHtml(p.title)}</span>
+              <span class="badge">${count}</span>
+            </button>
+          </li>
+        `;
+      }).join('');
+
+      // 2. Evaluate Visibility States
+      if (!currentVocabPageId || MY_VOCAB_PAGES.length === 0) {
+        id('myvocab-empty-state').style.display = 'block';
+        id('myvocab-single-page-view').style.display = 'none';
+        return;
+      }
+
+      id('myvocab-empty-state').style.display = 'none';
+      id('myvocab-single-page-view').style.display = 'block';
+
+      const activePage = MY_VOCAB_PAGES.find(p => p.id === currentVocabPageId);
+      if (!activePage) return;
+
+      // 3. Render Dashboard Title Section with design reference template structure
+      const titleWrapper = id('notebook-interactive-title-container');
+      if (isEditingNotebookTitle) {
+        titleWrapper.innerHTML = `
+          <div class="title-edit-container">
+            <input type="text" id="edit-notebook-title-input" class="title-edit-input" value="${escHtml(activePage.title)}">
+            <button onclick="saveActiveNotebookTitle()" class="title-save-btn">Save</button>
+            <button onclick="setNotebookTitleEditing(false)" class="title-cancel-btn">Cancel</button>
+          </div>
+        `;
+        setTimeout(() => id('edit-notebook-title-input').focus(), 50);
+      } else {
+        titleWrapper.innerHTML = `
+          <div class="title-display-container">
+            <h3 class="title-display-text">📓 ${escHtml(activePage.title)}</h3>
+            <button onclick="setNotebookTitleEditing(true)" class="title-edit-btn" title="Edit Notebook Title">
+              <i class="ti ti-pencil"></i> Edit
+            </button>
+          </div>
+        `;
+      }
+
+      // 4. Render Bookmarked Custom Vocabulary Tags
+      const pageWordIds = savedWordRelations.filter(r => r.pageId === currentVocabPageId).map(r => r.vocabId);
+      const pageWordsGrid = id('page-words-grid');
+      
+      if (pageWordIds.length === 0) {
+        pageWordsGrid.innerHTML = `<div style="grid-column: 1/-1; color: var(--blue-4); font-size: 0.9rem; padding: 0.5rem 0;">No pinned words here yet. Use the dictionary panel to collect cards.</div>`;
+      } else {
+        const matchedWords = VOCAB.filter(x => pageWordIds.includes(x.id));
+        pageWordsGrid.innerHTML = matchedWords.map(w => `
+          <div class="saved-word-tag">
+            <div class="saved-word-info">
+              <span class="saved-word-kanji">${w.kanji}</span>
+              <span class="saved-word-reading">${w.reading}</span>
+            </div>
+            <button class="btn-remove-tag" onclick="removeWordRelation('${w.id}')" title="Unpin item">
+              <i class="ti ti-x"></i>
+            </button>
+          </div>
+        `).join('');
+      }
+
+      // 5. Build and Populate Rich Content Stack Notes modules
+      renderNotebookNotesOnly();
+    }
+
+    function selectNotebookPage(pId) {
+      currentVocabPageId = pId;
+      isEditingNotebookTitle = false; // Reset toggle
+      renderMyVocab();
+    }
+
+    function addNotebookPage() {
+      const promptTitle = prompt('Enter a title name for your custom N3 Notebook page context:', 'New Study Canvas');
+      if (!promptTitle || !promptTitle.trim()) return;
+      const newPageId = 'canvas_' + Date.now();
+      MY_VOCAB_PAGES.push({ id: newPageId, title: promptTitle.trim() });
+      savePages();
+      selectNotebookPage(newPageId);
+    }
+
+    function removeWordRelation(vId) {
+      savedWordRelations = savedWordRelations.filter(r => !(r.pageId === currentVocabPageId && r.vocabId == vId));
+      saveRelations();
+      renderMyVocab();
+    }
+
+    /* ── NOTE BLOCKS CONTROLLER ── */
+    function addNote() {
+      if (!currentVocabPageId) return;
+      const newNote = {
+        id: Date.now(),
+        pageId: currentVocabPageId,
+        title: 'Note Entry Concept Block',
+        body: '',
+        expanded: true
+      };
+      NOTES.push(newNote);
+      saveNotes();
+      renderNotebookNotesOnly(); // Renders the inner block stack without touching page title visibility states
+    }
+
+    function deleteNote(nid) {
+      if (!confirm('Are you sure you want to remove this text note block module?')) return;
+      NOTES = NOTES.filter(x => x.id !== nid);
+      saveNotes();
+      renderNotebookNotesOnly();
+    }
+
+    function renderNotebookNotesOnly() {
+      const container = id('page-notes-container');
+      const filteredNotes = NOTES.filter(x => x.pageId === currentVocabPageId);
+      
+      if (filteredNotes.length === 0) {
+        container.innerHTML = `
+          <div style="text-align:center; padding: 2rem; color: var(--blue-4); border: 2px dashed var(--blue-2); border-radius: var(--border-radius-md);">
+            <p style="margin:0; font-size:0.9rem;">No custom annotation notes active on this workspace deck yet.</p>
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filteredNotes.map(n => `
+        <div class="note-card">
+          <div class="note-header">
+            <div class="note-header-left" onclick="toggleNoteAccordion(${n.id})">
+              <i class="ti ${n.expanded ? 'ti-chevron-down' : 'ti-chevron-right'}"></i>
+              <span data-note-header-span="${n.id}">${escHtml(n.title || 'Note Block')}</span>
+            </div>
+            <div class="note-header-actions">
+              <button class="btn-note-action" onclick="deleteNote(${n.id})" title="Delete entry block"><i class="ti ti-trash"></i></button>
+            </div>
+          </div>
+          ${n.expanded ? `
+            <div class="note-content-area">
+              <input type="text" class="note-editable-title" value="${escHtml(n.title)}" placeholder="Edit block header label..." oninput="updateNoteHeaderText(${n.id}, this.value)">
+              <div style="height:1px; background-color:var(--blue-2); margin:0.25rem 0 0.75rem 0;"></div>
+              <div class="note-body-editor" contenteditable="true" data-placeholder="Type grammar examples, memory notes or context rules here..." oninput="updateNoteContentBody(${n.id}, this)">${n.body}</div>
+            </div>
+          ` : ''}
+        </div>
+      `).join('');
+    }
+
+    function toggleNoteAccordion(nid) {
+      const targetNote = NOTES.find(x => x.id === nid);
+      if (targetNote) {
+        targetNote.expanded = !targetNote.expanded;
+        saveNotes();
+        renderNotebookNotesOnly();
+      }
+    }
+
+    function updateNoteHeaderText(nid, value) {
+      const targetNote = NOTES.find(x => x.id === nid);
+      if (targetNote) {
+        targetNote.title = value;
+        saveNotes();
+        const innerHeaderSpan = document.querySelector(`[data-note-header-span="${nid}"]`);
+        if (innerHeaderSpan) innerHeaderSpan.textContent = value || 'Note Block';
+      }
+    }
+
+    function updateNoteContentBody(nid, divElement) {
+      const targetNote = NOTES.find(x => x.id === nid);
+      if (targetNote) {
+        targetNote.body = divElement.innerHTML;
+        saveNotes();
+      }
+    }
+
+    function escHtml(s) {
+      return String(s || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+
+    /* ── RUNTIME ENGINE ACTIVATION INITIALIZATION ── */
+    window.addEventListener('DOMContentLoaded', () => {
+      loadState();
+      switchTab('home');
+    });
+
+    /* KEYBOARD HOTKEY SHIFT LISTENER CONTROLS */
+    document.addEventListener('keydown', e => {
+      if (currentTab === 'study') {
+        if (e.key === 'ArrowRight') next();
+        else if (e.key === 'ArrowLeft') prev();
+        else if (e.key === ' ') { e.preventDefault(); flip(); }
+        else if (e.key === 'Enter') markLearnt();
+        else if (e.key === 'h' || e.key === 'H') markHard();
+      }
+    });
+  </script>
+</body>
+</html>
